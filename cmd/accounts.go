@@ -18,13 +18,11 @@ func RunAccountList() *cobra.Command {
 		log.Println("Show accounts called")
 		api := zenmoney.NewApi(&http.Client{})
 
-		resp, err := api.Diff()
+		_, err := api.Diff()
 
 		if err != nil {
 			log.Println(err)
 		}
-
-		log.Println(resp)
 
 		return nil
 	}

@@ -73,6 +73,7 @@ func (api *Api) Diff() (*http.Response, error) {
 
 	tableData := pterm.TableData{
 		{"Счет", "Баланс", "Валюта"},
+		{" ", " ", " "},
 	}
 
 	for _, account := range result.Account {

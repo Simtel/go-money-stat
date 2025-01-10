@@ -7,7 +7,6 @@ import (
 	"money-stat/cmd"
 )
 
-// init is invoked before main()
 func init() {
 	// loads values from .env into the system
 	if err := godotenv.Load(); err != nil {
