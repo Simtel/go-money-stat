@@ -20,7 +20,7 @@ func main() {
 	rootCmd := &cobra.Command{}
 
 	rootCmd.AddCommand(
-		cmd.RunStat(),
+		cmd.RunAccountList(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {

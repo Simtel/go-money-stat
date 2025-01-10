@@ -7,15 +7,15 @@ import (
 	"net/http"
 )
 
-func RunStat() *cobra.Command {
+func RunAccountList() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "stat",
-		Short: "Show base stat",
+		Use:   "accounts",
+		Short: "Show list accounts",
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-		log.Println("stat called")
+		log.Println("Show accounts called")
 		api := zenmoney.NewApi(&http.Client{})
 
 		resp, err := api.Diff()
