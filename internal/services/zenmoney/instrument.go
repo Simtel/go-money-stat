@@ -7,3 +7,7 @@ type Instrument struct {
 	Symbol     string  `json:"symbol"`
 	Rate       float64 `json:"rate"`
 }
+
+func (i *Instrument) IsDollar() bool {
+	return i.ShortTitle == "USD"
+}

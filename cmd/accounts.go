@@ -33,8 +33,12 @@ func RunAccountList() *cobra.Command {
 
 		instruments := make(map[int]string)
 
+		rateDollar := 0.0
 		for _, instrument := range result.Instrument {
-			instruments[instrument.Id] = instrument.Title
+			instruments[instrument.Id] = instrument.Symbol
+			if instrument.IsDollar() {
+				rateDollar = instrument.Rate
+			}
 		}
 
 		var summRuble float64
@@ -56,11 +60,13 @@ func RunAccountList() *cobra.Command {
 			{
 				"Итого в рублях",
 				"Итого в долларах",
+				"Общая сумма в рублях",
 			},
 			{" ", " "},
 			{
 				strconv.FormatFloat(summRuble, 'f', 2, 64),
 				strconv.FormatFloat(summDollar, 'f', 2, 64),
+				strconv.FormatFloat(summRuble+(summDollar*rateDollar), 'f', 2, 64),
 			},
 		}
 
