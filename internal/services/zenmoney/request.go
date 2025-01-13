@@ -5,11 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pterm/pterm"
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -18,16 +16,7 @@ type Diff struct {
 	ServerTimestamp        int64 `json:"serverTimestamp"`
 }
 
-type Response struct {
-	Account []struct {
-		Id         string  `json:"id"`
-		Title      string  `json:"title"`
-		Balance    float64 `json:"balance"`
-		Instrument int64   `json:"instrument"`
-	} `json:"Account"`
-}
-
-func (api *Api) Diff() (*http.Response, error) {
+func (api *Api) Diff() (*Response, error) {
 	token, err := api.Init()
 	if err != nil {
 		return nil, err
@@ -71,16 +60,5 @@ func (api *Api) Diff() (*http.Response, error) {
 		fmt.Println("Can not unmarshal JSON")
 	}
 
-	tableData := pterm.TableData{
-		{"Счет", "Баланс", "Валюта"},
-		{" ", " ", " "},
-	}
-
-	for _, account := range result.Account {
-		tableData = append(tableData, []string{account.Title, strconv.FormatFloat(account.Balance, 'f', 2, 64), strconv.FormatInt(account.Instrument, 16)})
-	}
-
-	pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
-
-	return resp, errorResp
+	return &result, errorResp
 }
