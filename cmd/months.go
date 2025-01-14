@@ -7,6 +7,7 @@ import (
 	"log"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -45,18 +46,28 @@ func RunMonths() *cobra.Command {
 		var cnt int
 
 		tableData := pterm.TableData{
-			{"Дата", "Категория", "Сумма"},
+			{"Дата", "Категория", "Сумма", "Дата создания"},
 			{" ", " ", " "},
 		}
 
-		for _, transaction := range diff.Transaction {
-			if transaction.Created < timestamp {
+		var transactions []zenmoney.Transaction
+
+		for _, t := range diff.Transaction {
+			layout := "2025-01-02"
+			tTime, _ := time.Parse(layout, t.Date)
+			if tTime.Unix() < timestamp {
 				continue
 			}
 
+			transactions = append(transactions, t)
+		}
+		sort.Slice(transactions, func(i, j int) bool {
+			return transactions[i].Created > transactions[j].Created
+		})
+		for _, transaction := range transactions {
 			cnt++
-			t := time.Unix(transaction.Changed, 0)
-			tableData = append(tableData, []string{t.Format("2006-01-02 15:04:05"), "Категория", strconv.FormatFloat(transaction.Outcome, 'f', 2, 64)})
+			tCreatedDate := time.Unix(transaction.Created, 0)
+			tableData = append(tableData, []string{transaction.Date, "Категория", strconv.FormatFloat(transaction.FormatAmount(), 'f', 2, 64), tCreatedDate.Format("2006-01-02 15:04:05")})
 			if transaction.Outcome > 0 && transaction.Income == 0 {
 				outComeSumm = outComeSumm + transaction.Outcome
 			}
