@@ -20,6 +20,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		cmd.RunAccountList(),
+		cmd.RunMonths(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {
