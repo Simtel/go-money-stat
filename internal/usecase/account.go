@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"github.com/pterm/pterm"
 	"log"
 	"money-stat/internal/services/zenmoney"
@@ -50,7 +51,10 @@ func (a *Accounts) GetAccounts() {
 		}
 	}
 
-	pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
+	errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
+	if errTable != nil {
+		fmt.Println(errTable)
+	}
 
 	summData := pterm.TableData{
 		{
@@ -66,5 +70,8 @@ func (a *Accounts) GetAccounts() {
 		},
 	}
 
-	pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(summData).Render()
+	errSummTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(summData).Render()
+	if errSummTable != nil {
+		fmt.Println(errSummTable)
+	}
 }

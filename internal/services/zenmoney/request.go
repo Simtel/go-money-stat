@@ -52,7 +52,7 @@ func (api *Api) Diff() (*Response, error) {
 		return nil, errors.New(resp.Status)
 	}
 
-	body, err := io.ReadAll(resp.Body) // response body is []byte
+	body, _ := io.ReadAll(resp.Body)
 
 	var result Response
 
