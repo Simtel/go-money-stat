@@ -14,3 +14,11 @@ func (r *Response) GetIndexedTags() map[string]Tag {
 	}
 	return tags
 }
+
+func (r *Response) GetIndexedAccounts() map[string]Account {
+	accounts := make(map[string]Account)
+	for _, account := range r.Account {
+		accounts[account.Id] = account
+	}
+	return accounts
+}
