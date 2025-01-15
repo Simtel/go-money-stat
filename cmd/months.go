@@ -45,6 +45,8 @@ func RunMonths() *cobra.Command {
 		var inComeSumm float64
 		var cnt int
 
+		tags := diff.GetIndexedTags()
+
 		tableData := pterm.TableData{
 			{"Дата", "Категория", "Сумма", "Дата создания"},
 			{" ", " ", " "},
@@ -53,7 +55,7 @@ func RunMonths() *cobra.Command {
 		var transactions []zenmoney.Transaction
 
 		for _, t := range diff.Transaction {
-			layout := "2025-01-02"
+			layout := "2006-01-02"
 			tTime, _ := time.Parse(layout, t.Date)
 			if tTime.Unix() < timestamp {
 				continue
@@ -61,13 +63,21 @@ func RunMonths() *cobra.Command {
 
 			transactions = append(transactions, t)
 		}
+
 		sort.Slice(transactions, func(i, j int) bool {
 			return transactions[i].Created > transactions[j].Created
 		})
+
 		for _, transaction := range transactions {
 			cnt++
+
+			var transactionTags string
+			for _, tag := range transaction.Tag {
+				transactionTags += tags[tag].Title + " "
+			}
+
 			tCreatedDate := time.Unix(transaction.Created, 0)
-			tableData = append(tableData, []string{transaction.Date, "Категория", strconv.FormatFloat(transaction.FormatAmount(), 'f', 2, 64), tCreatedDate.Format("2006-01-02 15:04:05")})
+			tableData = append(tableData, []string{transaction.Date, transactionTags, transaction.FormatAmount(), tCreatedDate.Format("2006-01-02 15:04:05")})
 			if transaction.Outcome > 0 && transaction.Income == 0 {
 				outComeSumm = outComeSumm + transaction.Outcome
 			}
