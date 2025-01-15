@@ -42,7 +42,14 @@ func (a *Accounts) GetAccounts() {
 	var summDollar float64
 
 	for _, account := range result.Account {
-		tableData = append(tableData, []string{account.Title, strconv.FormatFloat(account.Balance, 'f', 2, 64), instruments[account.Instrument]})
+		tableData = append(
+			tableData,
+			[]string{
+				account.Title,
+				strconv.FormatFloat(account.Balance, 'f', 2, 64),
+				instruments[account.Instrument],
+			},
+		)
 		if account.IsRuble() {
 			summRuble = summRuble + account.Balance
 		}

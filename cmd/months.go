@@ -77,7 +77,15 @@ func RunMonths() *cobra.Command {
 			}
 
 			tCreatedDate := time.Unix(transaction.Created, 0)
-			tableData = append(tableData, []string{transaction.Date, transactionTags, transaction.FormatAmount(), tCreatedDate.Format("2006-01-02 15:04:05")})
+			tableData = append(
+				tableData,
+				[]string{
+					transaction.Date,
+					transactionTags,
+					transaction.FormatAmount(),
+					tCreatedDate.Format("2006-01-02 15:04:05"),
+				},
+			)
 			if transaction.Outcome > 0 && transaction.Income == 0 {
 				outComeSumm = outComeSumm + transaction.Outcome
 			}
