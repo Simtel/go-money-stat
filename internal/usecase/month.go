@@ -60,9 +60,9 @@ func (m *Month) GetMonthStat(month string) {
 		previousMonth := firstDayOfMonth.AddDate(0, -1, 0)
 		firstDayTimestamp = previousMonth.Unix()
 
-		firstOfNextMonth := time.Date(previousMonth.Year(), previousMonth.Month()+1, 1, 0, 0, 0, 0, now.Location())
-		lastOfCurrentMonth := firstOfNextMonth.AddDate(0, 0, -1)
-		lastDayTimestamp = lastOfCurrentMonth.Unix()
+		firstOfNextMonth := time.Date(previousMonth.Year(), previousMonth.Month()+1, 1, 23, 59, 59, 0, now.Location())
+		lastDayMonth := firstOfNextMonth.AddDate(0, 0, -1)
+		lastDayTimestamp = lastDayMonth.Unix()
 	}
 
 	var outComeSumm, inComeSumm, diffAmount float64
