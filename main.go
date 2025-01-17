@@ -21,6 +21,7 @@ func main() {
 	rootCmd.AddCommand(
 		cmd.RunAccountList(),
 		cmd.RunMonths(),
+		cmd.RunYearChart(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {
