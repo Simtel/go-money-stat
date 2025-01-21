@@ -1,28 +1,24 @@
 package cmd
 
 import (
-	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"log"
 	"math"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
+	"sort"
+	"strconv"
 	"time"
 )
 
-func RunYearChart() *cobra.Command {
+func RunYear() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "year-chart",
-		Short: "Показать график доходов и расходов  за последние 12 месяцев",
+		Use:   "year",
+		Short: "Показать таблицу доходов и расходов  за последние 12 месяцев",
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-
-		if err := ui.Init(); err != nil {
-			log.Fatalf("failed to initialize termui: %v", err)
-		}
-		defer ui.Close()
 
 		api := zenmoney.NewApi(&http.Client{})
 
@@ -55,31 +51,31 @@ func RunYearChart() *cobra.Command {
 			stats[key] = stat
 		}
 
-		sbc := widgets.NewStackedBarChart()
-		sbc.Title = "Статистика доходов и расходов по месецам"
-		sbc.Labels = []string{}
-		sbc.Data = make([][]float64, len(stats))
-		index := 0
-		for _, row := range stats {
-			sbc.Labels = append(sbc.Labels, row.Month)
-			sbc.Data[index] = []float64{row.Income, row.OutCome, row.Diff}
-			index++
+		var valuesSlice []MonthStat
+		for _, value := range stats {
+			valuesSlice = append(valuesSlice, value)
 		}
 
-		sbc.SetRect(5, 5, 1000, 50)
-		sbc.BarWidth = 6
+		sort.Slice(valuesSlice, func(i, j int) bool {
+			return valuesSlice[i].Month < valuesSlice[j].Month
+		})
 
-		ui.Render(sbc)
-
-		uiEvents := ui.PollEvents()
-		for {
-			e := <-uiEvents
-			switch e.ID {
-			case "q", "<C-c>":
-				return nil
-			}
+		tableData := pterm.TableData{
+			{"Месяц", "Доход", "Расход", "Чистыми"},
+			{" ", " ", " ", " "},
 		}
 
+		for _, row := range valuesSlice {
+			tableData = append(tableData, []string{row.Month, strconv.FormatFloat(row.OutCome, 'f', 2, 64), strconv.FormatFloat(row.OutCome, 'f', 2, 64), strconv.FormatFloat(row.Diff, 'f', 2, 64)})
+
+		}
+
+		errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
+		if errTable != nil {
+			fmt.Println(errTable)
+		}
+
+		return nil
 	}
 
 	return cmd
