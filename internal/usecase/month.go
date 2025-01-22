@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pterm/pterm"
 	"log"
-	"math"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
 	"sort"
@@ -65,7 +64,7 @@ func (m *Month) GetMonthStat(month string) {
 		lastDayTimestamp = lastDayMonth.Unix()
 	}
 
-	var outComeSumm, inComeSumm, diffAmount float64
+	var outComeSumm, inComeSumm float64
 
 	var cnt int
 
@@ -136,11 +135,6 @@ func (m *Month) GetMonthStat(month string) {
 		if transaction.Income > 0 && transaction.Outcome == 0 {
 			inComeSumm = inComeSumm + transaction.Income
 		}
-
-		if transaction.Outcome > 0 && transaction.Income > 0 {
-			diffAmount = diffAmount + math.Abs(transaction.Outcome-transaction.Income)
-		}
-
 	}
 
 	errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()

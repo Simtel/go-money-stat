@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"math"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
 	"sort"
@@ -45,9 +44,6 @@ func RunYear() *cobra.Command {
 				stat.Income = stat.Income + transaction.Income
 			}
 
-			if transaction.Outcome > 0 && transaction.Income > 0 {
-				stat.Diff = stat.Diff + math.Abs(transaction.Outcome-transaction.Income)
-			}
 			stats[key] = stat
 		}
 
@@ -66,7 +62,15 @@ func RunYear() *cobra.Command {
 		}
 
 		for _, row := range valuesSlice {
-			tableData = append(tableData, []string{row.Month, strconv.FormatFloat(row.OutCome, 'f', 2, 64), strconv.FormatFloat(row.OutCome, 'f', 2, 64), strconv.FormatFloat(row.Diff, 'f', 2, 64)})
+			tableData = append(
+				tableData,
+				[]string{
+					row.Month,
+					strconv.FormatFloat(row.Income, 'f', 2, 64),
+					strconv.FormatFloat(row.OutCome, 'f', 2, 64),
+					strconv.FormatFloat(row.Income-row.OutCome, 'f', 2, 64),
+				},
+			)
 
 		}
 
@@ -85,5 +89,4 @@ type MonthStat struct {
 	Month   string
 	Income  float64
 	OutCome float64
-	Diff    float64
 }
