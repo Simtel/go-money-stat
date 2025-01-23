@@ -68,13 +68,20 @@ func (y *Year) GetYearStat() {
 	}
 
 	for _, row := range valuesSlice {
+		diff := row.Income - row.OutCome
+		var diffStr string
+		if diff < 0 {
+			diffStr = pterm.FgRed.Sprint(strconv.FormatFloat(diff, 'f', 2, 64))
+		} else {
+			diffStr = pterm.FgGreen.Sprint(strconv.FormatFloat(diff, 'f', 2, 64))
+		}
 		tableData = append(
 			tableData,
 			[]string{
 				row.Month,
 				strconv.FormatFloat(row.Income, 'f', 2, 64),
 				strconv.FormatFloat(row.OutCome, 'f', 2, 64),
-				strconv.FormatFloat(row.Income-row.OutCome, 'f', 2, 64),
+				diffStr,
 			},
 		)
 
