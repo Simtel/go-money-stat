@@ -22,6 +22,7 @@ func main() {
 		cmd.RunAccountList(),
 		cmd.RunMonths(),
 		cmd.RunYear(),
+		cmd.RunSync(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {

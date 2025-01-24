@@ -5,3 +5,4 @@ pkg/
 /mock/
 /.env
 /money-stat
+zenmoney.db
