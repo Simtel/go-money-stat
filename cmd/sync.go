@@ -22,7 +22,10 @@ func RunSync() *cobra.Command {
 		}
 
 		// Migrate the schema
-		db.AutoMigrate(&Transaction{})
+		errMigrate := db.AutoMigrate(&Transaction{})
+		if err != nil {
+			panic(errMigrate)
+		}
 
 		db.Where("`id` > ?", 0).Delete(&Transaction{})
 
