@@ -11,13 +11,21 @@ func RunMonths() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:       "months",
 		Short:     "Показать транзакции за месяц (текущий, прошлый)",
-		ValidArgs: []string{"current", "last"},
-		Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+		ValidArgs: []string{"current", "last", "local"},
+		Args:      cobra.MatchAll(cobra.RangeArgs(1, 2), cobra.OnlyValidArgs),
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
 		month := args[0]
+
+		local := args[1]
+
+		if local == "local" {
+			transactionsLocal := &usecase.TransactionsLocal{}
+			transactionsLocal.GetLast(10)
+			return nil
+		}
 
 		api := zenmoney.NewApi(&http.Client{})
 

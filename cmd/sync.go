@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
 )
@@ -22,12 +23,12 @@ func RunSync() *cobra.Command {
 		}
 
 		// Migrate the schema
-		errMigrate := db.AutoMigrate(&Transaction{})
+		errMigrate := db.AutoMigrate(&model.Transaction{})
 		if err != nil {
 			panic(errMigrate)
 		}
 
-		db.Where("`id` > ?", 0).Delete(&Transaction{})
+		db.Where("`id` > ?", 0).Delete(&model.Transaction{})
 
 		api := zenmoney.NewApi(&http.Client{})
 
@@ -35,7 +36,7 @@ func RunSync() *cobra.Command {
 
 		for _, transaction := range diff.Transaction {
 
-			db.Create(&Transaction{
+			db.Create(&model.Transaction{
 				Id:                transaction.Id,
 				Changed:           transaction.Changed,
 				Created:           transaction.Created,
@@ -54,19 +55,4 @@ func RunSync() *cobra.Command {
 	}
 
 	return cmd
-}
-
-type Transaction struct {
-	gorm.Model
-	Id                string
-	Changed           int64
-	Created           int64
-	IncomeInstrument  int64
-	Income            float64
-	OutcomeInstrument int64
-	Outcome           float64
-	Date              string
-	Deleted           bool
-	IncomeAccount     string
-	OutcomeAccount    string
 }
