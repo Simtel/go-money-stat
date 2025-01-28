@@ -19,12 +19,14 @@ func RunMonths() *cobra.Command {
 
 		month := args[0]
 
-		local := args[1]
+		if len(args) > 1 {
+			local := args[1]
 
-		if local == "local" {
-			transactionsLocal := &usecase.TransactionsLocal{}
-			transactionsLocal.GetLast(10)
-			return nil
+			if local == "local" {
+				transactionsLocal := &usecase.TransactionsLocal{}
+				transactionsLocal.GetLast(10)
+				return nil
+			}
 		}
 
 		api := zenmoney.NewApi(&http.Client{})

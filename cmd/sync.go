@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
+	"strconv"
 )
 
 func RunSync() *cobra.Command {
@@ -28,11 +30,20 @@ func RunSync() *cobra.Command {
 			panic(errMigrate)
 		}
 
-		db.Where("`id` > ?", 0).Delete(&model.Transaction{})
+		result := db.Where("`id` != ?", "").Delete(&model.Transaction{})
+
+		if result.Error != nil {
+			fmt.Println(result.Error)
+		}
+
+		fmt.Println("Удалено записей:" + strconv.FormatInt(result.RowsAffected, 16))
 
 		api := zenmoney.NewApi(&http.Client{})
 
 		diff, _ := api.Diff()
+
+		var doubles []string
+		checks := make(map[string]string)
 
 		for _, transaction := range diff.Transaction {
 
@@ -49,8 +60,15 @@ func RunSync() *cobra.Command {
 				IncomeAccount:     transaction.IncomeAccount,
 				OutcomeAccount:    transaction.OutcomeAccount,
 			})
-		}
 
+			_, exists := checks[transaction.Id]
+			if !exists {
+				checks[transaction.Id] = transaction.Id
+			} else {
+				doubles = append(doubles, transaction.Id)
+			}
+		}
+		fmt.Println(doubles)
 		return nil
 	}
 
