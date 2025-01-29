@@ -1,9 +1,6 @@
 package model
 
-import "gorm.io/gorm"
-
 type Transaction struct {
-	gorm.Model
 	Id                string
 	Changed           int64
 	Created           int64

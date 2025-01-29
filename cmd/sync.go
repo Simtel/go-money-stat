@@ -42,9 +42,6 @@ func RunSync() *cobra.Command {
 
 		diff, _ := api.Diff()
 
-		var doubles []string
-		checks := make(map[string]string)
-
 		for _, transaction := range diff.Transaction {
 
 			db.Create(&model.Transaction{
@@ -60,15 +57,8 @@ func RunSync() *cobra.Command {
 				IncomeAccount:     transaction.IncomeAccount,
 				OutcomeAccount:    transaction.OutcomeAccount,
 			})
-
-			_, exists := checks[transaction.Id]
-			if !exists {
-				checks[transaction.Id] = transaction.Id
-			} else {
-				doubles = append(doubles, transaction.Id)
-			}
 		}
-		fmt.Println(doubles)
+
 		return nil
 	}
 

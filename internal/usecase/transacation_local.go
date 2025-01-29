@@ -29,6 +29,6 @@ func (t *TransactionsLocal) GetLast(cnt int) {
 	fmt.Println("Вернулось записей:" + strconv.Itoa(len(transactions)))
 
 	for _, transaction := range transactions {
-		fmt.Println(transaction.Id)
+		fmt.Println(transaction)
 	}
 }
