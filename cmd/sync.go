@@ -25,7 +25,7 @@ func RunSync() *cobra.Command {
 		}
 
 		// Migrate the schema
-		errMigrate := db.AutoMigrate(&model.Transaction{})
+		errMigrate := db.AutoMigrate(&model.Transaction{}, &model.Tag{}, &model.Instrument{}, &model.Account{})
 		if err != nil {
 			panic(errMigrate)
 		}
@@ -56,6 +56,32 @@ func RunSync() *cobra.Command {
 				Deleted:           transaction.Deleted,
 				IncomeAccount:     transaction.IncomeAccount,
 				OutcomeAccount:    transaction.OutcomeAccount,
+			})
+		}
+
+		for _, tag := range diff.Tag {
+			db.Create(&model.Tag{
+				Id:    tag.Id,
+				Title: tag.Title,
+			})
+		}
+
+		for _, inc := range diff.Instrument {
+			db.Create(&model.Instrument{
+				Id:         inc.Id,
+				Title:      inc.Title,
+				ShortTitle: inc.ShortTitle,
+				Symbol:     inc.Symbol,
+				Rate:       inc.Rate,
+			})
+		}
+
+		for _, account := range diff.Account {
+			db.Create(&model.Account{
+				Id:         account.Id,
+				Title:      account.Title,
+				Balance:    account.Balance,
+				Instrument: account.Instrument,
 			})
 		}
 
