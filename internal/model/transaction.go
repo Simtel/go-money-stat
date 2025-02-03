@@ -14,6 +14,7 @@ type Transaction struct {
 	Deleted           bool
 	IncomeAccount     string
 	OutcomeAccount    string
+	Tag               []Tag `gorm:"many2many:transaction_tags;association_autocreate:false"`
 }
 
 func (t Transaction) FormatAmount() string {

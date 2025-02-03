@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
-	"strconv"
 )
 
 func RunSync() *cobra.Command {
@@ -30,34 +28,14 @@ func RunSync() *cobra.Command {
 			panic(errMigrate)
 		}
 
-		result := db.Where("`id` != ?", "").Delete(&model.Transaction{})
-
-		if result.Error != nil {
-			fmt.Println(result.Error)
-		}
-
-		fmt.Println("Удалено записей:" + strconv.FormatInt(result.RowsAffected, 16))
+		db.Where("`id` != ?", "").Delete(&model.Transaction{})
+		db.Where("`id` != ?", "").Delete(&model.Account{})
+		db.Where("`id` != ?", "").Delete(&model.Tag{})
+		db.Where("`id` != ?", "").Delete(&model.Instrument{})
 
 		api := zenmoney.NewApi(&http.Client{})
 
 		diff, _ := api.Diff()
-
-		for _, transaction := range diff.Transaction {
-
-			db.Create(&model.Transaction{
-				Id:                transaction.Id,
-				Changed:           transaction.Changed,
-				Created:           transaction.Created,
-				IncomeInstrument:  transaction.IncomeInstrument,
-				Income:            transaction.Income,
-				OutcomeInstrument: transaction.OutcomeInstrument,
-				Outcome:           transaction.Outcome,
-				Date:              transaction.Date,
-				Deleted:           transaction.Deleted,
-				IncomeAccount:     transaction.IncomeAccount,
-				OutcomeAccount:    transaction.OutcomeAccount,
-			})
-		}
 
 		for _, tag := range diff.Tag {
 			db.Create(&model.Tag{
@@ -82,6 +60,28 @@ func RunSync() *cobra.Command {
 				Title:      account.Title,
 				Balance:    account.Balance,
 				Instrument: account.Instrument,
+			})
+		}
+
+		for _, transaction := range diff.Transaction {
+
+			var tags []model.Tag
+			for _, tag := range transaction.Tag {
+				tags = append(tags, model.Tag{Id: tag})
+			}
+			db.Create(&model.Transaction{
+				Id:                transaction.Id,
+				Changed:           transaction.Changed,
+				Created:           transaction.Created,
+				IncomeInstrument:  transaction.IncomeInstrument,
+				Income:            transaction.Income,
+				OutcomeInstrument: transaction.OutcomeInstrument,
+				Outcome:           transaction.Outcome,
+				Date:              transaction.Date,
+				Deleted:           transaction.Deleted,
+				IncomeAccount:     transaction.IncomeAccount,
+				OutcomeAccount:    transaction.OutcomeAccount,
+				Tag:               tags,
 			})
 		}
 
