@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"money-stat/cmd"
+	app2 "money-stat/internal/app"
 )
 
 func init() {
@@ -12,6 +13,12 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
 	}
+
+	db := app2.NewDB()
+	c := app2.NewContainer(db)
+	app := app2.NewApp(c)
+
+	app2.SetGlobalApp(app)
 }
 
 func main() {

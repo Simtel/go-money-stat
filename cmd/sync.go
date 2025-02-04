@@ -2,8 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	app2 "money-stat/internal/app"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
@@ -17,17 +16,9 @@ func RunSync() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-		db, err := gorm.Open(sqlite.Open("zenmoney.db?cache=shared&mode=rwc"), &gorm.Config{})
-		if err != nil {
-			panic("failed to connect database")
-		}
+		app, _ := app2.GetGlobalApp()
 
-		// Migrate the schema
-		errMigrate := db.AutoMigrate(&model.Transaction{}, &model.Tag{}, &model.Instrument{}, &model.Account{})
-		if err != nil {
-			panic(errMigrate)
-		}
-
+		db := app.GetContainer().GetDb().GetGorm()
 		db.Where("`id` != ?", "").Delete(&model.Transaction{})
 		db.Where("`id` != ?", "").Delete(&model.Account{})
 		db.Where("`id` != ?", "").Delete(&model.Tag{})
