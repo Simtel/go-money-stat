@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pterm/pterm"
 	"log"
+	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
 	"sort"
@@ -12,11 +13,12 @@ import (
 )
 
 type Month struct {
-	api *zenmoney.Api
+	api  *zenmoney.Api
+	repo *transactions.Repository
 }
 
-func NewMonth(api *zenmoney.Api) *Month {
-	return &Month{api: api}
+func NewMonth(api *zenmoney.Api, repo *transactions.Repository) *Month {
+	return &Month{api: api, repo: repo}
 }
 
 func (m *Month) GetMonthStat(month string) {
@@ -29,6 +31,8 @@ func (m *Month) GetMonthStat(month string) {
 	}
 
 	log.Printf("Show %s months transactions", month)
+
+	m.repo.GetCurrentMonths()
 
 	api := zenmoney.NewApi(&http.Client{})
 

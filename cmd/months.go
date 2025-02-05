@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	app2 "money-stat/internal/app"
 	"money-stat/internal/services/zenmoney"
 	"money-stat/internal/usecase"
 	"net/http"
@@ -17,21 +18,12 @@ func RunMonths() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
+		app, _ := app2.GetGlobalApp()
 		month := args[0]
-
-		if len(args) > 1 {
-			local := args[1]
-
-			if local == "local" {
-				transactionsLocal := &usecase.TransactionsLocal{}
-				transactionsLocal.GetLast(10)
-				return nil
-			}
-		}
 
 		api := zenmoney.NewApi(&http.Client{})
 
-		months := usecase.NewMonth(api)
+		months := usecase.NewMonth(api, app.GetContainer().GetTransactionRepository())
 
 		months.GetMonthStat(month)
 
