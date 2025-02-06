@@ -14,7 +14,9 @@ type Transaction struct {
 	Deleted           bool
 	IncomeAccount     string
 	OutcomeAccount    string
-	Tag               []Tag `gorm:"many2many:transaction_tags;association_autocreate:false"`
+	Tag               []Tag   `gorm:"many2many:transaction_tags;association_autocreate:false"`
+	InAccount         Account `gorm:"foreignKey:IncomeAccount"`
+	OutAccount        Account `gorm:"foreignKey:OutcomeAccount"`
 }
 
 func (t Transaction) FormatAmount() string {
@@ -31,4 +33,20 @@ func (t Transaction) FormatAmount() string {
 	}
 
 	return "0"
+}
+
+func (t Transaction) IsDeleted() bool {
+	return t.Deleted
+}
+
+func (t Transaction) IsIncome() bool {
+	return t.Income > 0 && t.Outcome == 0
+}
+
+func (t Transaction) IsOutcome() bool {
+	return t.Outcome > 0 && t.Income == 0
+}
+
+func (t Transaction) IsTransfer() bool {
+	return t.Income > 0 && t.Outcome > 0
 }

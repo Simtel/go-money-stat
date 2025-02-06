@@ -4,104 +4,50 @@ import (
 	"fmt"
 	"github.com/pterm/pterm"
 	"log"
-	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
+	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
+	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
-	"net/http"
-	"sort"
 	"strconv"
 	"time"
 )
 
 type Month struct {
 	api  *zenmoney.Api
-	repo *transactions.Repository
+	repo *transactionsRepo.Repository
 }
 
-func NewMonth(api *zenmoney.Api, repo *transactions.Repository) *Month {
+func NewMonth(api *zenmoney.Api, repo *transactionsRepo.Repository) *Month {
 	return &Month{api: api, repo: repo}
 }
 
 func (m *Month) GetMonthStat(month string) {
-	multi := pterm.DefaultMultiPrinter
-
-	loadSpinner, _ := pterm.DefaultSpinner.WithWriter(multi.NewWriter()).Start("Загрузка данных")
-	_, err := multi.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	log.Printf("Show %s months transactions", month)
 
-	m.repo.GetCurrentMonths()
-
-	api := zenmoney.NewApi(&http.Client{})
-
-	diff, err := api.Diff()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	loadSpinner.Success("Загрузка завершена!")
-	_, errStop := multi.Stop()
-	if errStop != nil {
-		log.Fatal(err)
-	}
-	now := time.Now()
-	var firstDayTimestamp, lastDayTimestamp int64
+	var transactions []model.Transaction
 	if month == "current" {
-
-		firstDayOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-		firstDayTimestamp = firstDayOfMonth.Unix()
-		firstOfNextMonth := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
-		lastOfCurrentMonth := firstOfNextMonth.AddDate(0, 0, -1)
-		lastDayTimestamp = lastOfCurrentMonth.Unix()
+		transactions = m.repo.GetCurrentMonth()
 	}
 
 	if month == "last" {
-
-		firstDayOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-		previousMonth := firstDayOfMonth.AddDate(0, -1, 0)
-		firstDayTimestamp = previousMonth.Unix()
-
-		firstOfNextMonth := time.Date(previousMonth.Year(), previousMonth.Month()+1, 1, 23, 59, 59, 0, now.Location())
-		lastDayMonth := firstOfNextMonth.AddDate(0, 0, -1)
-		lastDayTimestamp = lastDayMonth.Unix()
+		transactions = m.repo.GetPreviousMonth()
 	}
 
 	var outComeSumm, inComeSumm float64
 
 	var cnt int
 
-	tags := diff.GetIndexedTags()
-	accounts := diff.GetIndexedAccounts()
-
 	tableData := pterm.TableData{
 		{"Дата", "Категория", "Сумма", "Счет", "Дата создания"},
 		{" ", " ", " ", " ", " "},
 	}
-
-	var transactions []zenmoney.Transaction
-
-	for _, t := range diff.Transaction {
-		layout := "2006-01-02"
-		tTime, _ := time.Parse(layout, t.Date)
-		if tTime.Unix() < firstDayTimestamp || tTime.Unix() > lastDayTimestamp || t.IsDeleted() {
-			continue
-		}
-
-		transactions = append(transactions, t)
-	}
-
-	sort.Slice(transactions, func(i, j int) bool {
-		return transactions[i].Created > transactions[j].Created
-	})
 
 	for _, transaction := range transactions {
 		cnt++
 
 		var transactionTags string
 		for _, tag := range transaction.Tag {
-			transactionTags += tags[tag].Title + " "
+			transactionTags += tag.Title + " "
 		}
 
 		if transactionTags == "" {
@@ -110,15 +56,15 @@ func (m *Month) GetMonthStat(month string) {
 
 		var account string
 		if transaction.IsIncome() {
-			account = accounts[transaction.IncomeAccount].Title
+			account = transaction.InAccount.Title
 		}
 
 		if transaction.IsOutcome() {
-			account = accounts[transaction.OutcomeAccount].Title
+			account = transaction.OutAccount.Title
 		}
 
 		if transaction.IsTransfer() {
-			account = accounts[transaction.OutcomeAccount].Title + "->" + accounts[transaction.IncomeAccount].Title
+			account = transaction.OutAccount.Title + "->" + transaction.InAccount.Title
 		}
 
 		tCreatedDate := time.Unix(transaction.Created, 0)
