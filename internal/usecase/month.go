@@ -6,18 +6,16 @@ import (
 	"log"
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"money-stat/internal/model"
-	"money-stat/internal/services/zenmoney"
 	"strconv"
 	"time"
 )
 
 type Month struct {
-	api  *zenmoney.Api
 	repo *transactionsRepo.Repository
 }
 
-func NewMonth(api *zenmoney.Api, repo *transactionsRepo.Repository) *Month {
-	return &Month{api: api, repo: repo}
+func NewMonth(repo *transactionsRepo.Repository) *Month {
+	return &Month{repo: repo}
 }
 
 func (m *Month) GetMonthStat(month string) {
@@ -29,7 +27,7 @@ func (m *Month) GetMonthStat(month string) {
 		transactions = m.repo.GetCurrentMonth()
 	}
 
-	if month == "last" {
+	if month == "previous" {
 		transactions = m.repo.GetPreviousMonth()
 	}
 
