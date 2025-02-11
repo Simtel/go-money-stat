@@ -1,6 +1,9 @@
 package app
 
-import "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
+import (
+	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
+	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
+)
 
 type Container struct {
 	db *DB
@@ -16,4 +19,8 @@ func (c *Container) GetDb() *DB {
 
 func (c *Container) GetTransactionRepository() *transactions.Repository {
 	return transactions.NewRepository(c.db.GetGorm())
+}
+
+func (c *Container) GetAccountRepository() *accounts.Repository {
+	return accounts.NewRepository(c.db.GetGorm())
 }

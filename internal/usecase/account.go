@@ -3,51 +3,39 @@ package usecase
 import (
 	"fmt"
 	"github.com/pterm/pterm"
-	"log"
-	"money-stat/internal/services/zenmoney"
+	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
 	"strconv"
 )
 
 type Accounts struct {
-	api *zenmoney.Api
+	repo *accounts.Repository
 }
 
-func NewAccounts(api *zenmoney.Api) *Accounts {
-	return &Accounts{api: api}
+func NewAccounts(repo *accounts.Repository) *Accounts {
+	return &Accounts{repo: repo}
 }
 
 func (a *Accounts) GetAccounts() {
-	result, err := a.api.Diff()
 
-	if err != nil {
-		log.Println(err)
-	}
+	accountsList := a.repo.GetAll()
 
 	tableData := pterm.TableData{
 		{"Счет", "Баланс", "Валюта"},
 		{" ", " ", " "},
 	}
 
-	instruments := make(map[int]string)
-
 	rateDollar := 0.0
-	for _, instrument := range result.Instrument {
-		instruments[instrument.Id] = instrument.Symbol
-		if instrument.IsDollar() {
-			rateDollar = instrument.Rate
-		}
-	}
 
 	var summRuble float64
 	var summDollar float64
 
-	for _, account := range result.Account {
+	for _, account := range accountsList {
 		tableData = append(
 			tableData,
 			[]string{
 				account.Title,
 				strconv.FormatFloat(account.Balance, 'f', 2, 64),
-				instruments[account.Instrument],
+				account.Currency.ShortTitle,
 			},
 		)
 		if account.IsRuble() {
@@ -55,6 +43,7 @@ func (a *Accounts) GetAccounts() {
 		}
 		if account.IsDollar() {
 			summDollar = summDollar + account.Balance
+			rateDollar = account.Currency.Rate
 		}
 	}
 

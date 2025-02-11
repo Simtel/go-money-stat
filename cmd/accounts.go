@@ -3,9 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"log"
-	"money-stat/internal/services/zenmoney"
+	app2 "money-stat/internal/app"
 	"money-stat/internal/usecase"
-	"net/http"
 )
 
 func RunAccountList() *cobra.Command {
@@ -17,9 +16,9 @@ func RunAccountList() *cobra.Command {
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
 		log.Println("Show accounts called")
-		api := zenmoney.NewApi(&http.Client{})
+		app, _ := app2.GetGlobalApp()
 
-		accounts := usecase.NewAccounts(api)
+		accounts := usecase.NewAccounts(app.GetContainer().GetAccountRepository())
 
 		accounts.GetAccounts()
 
