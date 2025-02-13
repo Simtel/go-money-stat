@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	app2 "money-stat/internal/app"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"net/http"
+	"strconv"
 )
 
 func RunSync() *cobra.Command {
@@ -54,6 +56,7 @@ func RunSync() *cobra.Command {
 			})
 		}
 
+		var cntTransactions int
 		for _, transaction := range diff.Transaction {
 
 			var tags []model.Tag
@@ -74,8 +77,9 @@ func RunSync() *cobra.Command {
 				OutcomeAccount:    transaction.OutcomeAccount,
 				Tag:               tags,
 			})
+			cntTransactions++
 		}
-
+		fmt.Println("Загружено транзакций:" + strconv.Itoa(cntTransactions))
 		return nil
 	}
 
