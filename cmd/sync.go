@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"log"
 	app2 "money-stat/internal/app"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
@@ -18,6 +20,8 @@ func RunSync() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
+		loadSpin := startSpinner("Загрузка данных")
+
 		app, _ := app2.GetGlobalApp()
 
 		db := app.GetContainer().GetDb().GetGorm()
@@ -30,13 +34,21 @@ func RunSync() *cobra.Command {
 
 		diff, _ := api.Diff()
 
+		stopSpinner(loadSpin, "Загрузка завершена")
+
+		tagsSpin := startSpinner("Сохранение тэгов")
+		var cntTags int
 		for _, tag := range diff.Tag {
 			db.Create(&model.Tag{
 				Id:    tag.Id,
 				Title: tag.Title,
 			})
+			cntTags++
 		}
+		tagsSpin.Success("Сохранение завершено!")
 
+		intSpinner := startSpinner("Сохранение валют")
+		var cntInstruments int
 		for _, inc := range diff.Instrument {
 			db.Create(&model.Instrument{
 				Id:         inc.Id,
@@ -45,8 +57,12 @@ func RunSync() *cobra.Command {
 				Symbol:     inc.Symbol,
 				Rate:       inc.Rate,
 			})
+			cntInstruments++
 		}
+		intSpinner.Success("Сохранение завершено!")
 
+		accSpinner := startSpinner("Сохранение счетов")
+		var cntAccounts int
 		for _, account := range diff.Account {
 			db.Create(&model.Account{
 				Id:         account.Id,
@@ -54,8 +70,11 @@ func RunSync() *cobra.Command {
 				Balance:    account.Balance,
 				Instrument: account.Instrument,
 			})
+			cntAccounts++
 		}
+		accSpinner.Success("Сохранение завершено!")
 
+		trSpinner := startSpinner("Сохранение транзакций")
 		var cntTransactions int
 		for _, transaction := range diff.Transaction {
 
@@ -79,9 +98,28 @@ func RunSync() *cobra.Command {
 			})
 			cntTransactions++
 		}
+		stopSpinner(trSpinner, "Сохранение завершено!")
+
 		fmt.Println("Загружено транзакций:" + strconv.Itoa(cntTransactions))
+		fmt.Println("Загружено тэгов:" + strconv.Itoa(cntTags))
+		fmt.Println("Загружено счетов:" + strconv.Itoa(cntAccounts))
+		fmt.Println("Загружено валют:" + strconv.Itoa(cntInstruments))
 		return nil
 	}
 
 	return cmd
+}
+
+func startSpinner(title string) *pterm.SpinnerPrinter {
+	multi := pterm.DefaultMultiPrinter
+	loadSpinner, _ := pterm.DefaultSpinner.WithWriter(multi.NewWriter()).Start(title)
+	_, err := multi.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return loadSpinner
+}
+
+func stopSpinner(spinner *pterm.SpinnerPrinter, title string) {
+	spinner.Success(title)
 }
