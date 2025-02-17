@@ -7,6 +7,7 @@ import (
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"money-stat/internal/model"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -90,6 +91,13 @@ func (m *Month) GetMonthStat(month string) {
 		fmt.Println(errTable)
 	}
 
+	monthDiff := strconv.FormatFloat(inComeSumm-outComeSumm, 'f', 2, 64)
+	if strings.HasPrefix(monthDiff, "-") {
+		monthDiff = pterm.FgRed.Sprint(monthDiff)
+	} else {
+		monthDiff = pterm.FgGreen.Sprint(monthDiff)
+	}
+
 	summData := pterm.TableData{
 		{
 			"Транзакций",
@@ -102,7 +110,7 @@ func (m *Month) GetMonthStat(month string) {
 			strconv.Itoa(cnt),
 			strconv.FormatFloat(inComeSumm, 'f', 2, 64),
 			strconv.FormatFloat(outComeSumm, 'f', 2, 64),
-			strconv.FormatFloat(inComeSumm-outComeSumm, 'f', 2, 64),
+			monthDiff,
 		},
 	}
 
