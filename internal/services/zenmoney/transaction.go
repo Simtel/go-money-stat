@@ -17,6 +17,7 @@ type Transaction struct {
 	Deleted           bool     `json:"deleted"`
 	IncomeAccount     string   `json:"incomeAccount"`
 	OutcomeAccount    string   `json:"outcomeAccount"`
+	Comment           string   `json:"comment"`
 }
 
 func (t Transaction) FormatAmount() string {
