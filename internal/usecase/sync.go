@@ -3,37 +3,35 @@ package usecase
 import (
 	"fmt"
 	"github.com/pterm/pterm"
+	"gorm.io/gorm"
 	"log"
-	app2 "money-stat/internal/app"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
-	"net/http"
 	"strconv"
 )
 
-type Sync struct{}
+type Sync struct {
+	db  *gorm.DB
+	api *zenmoney.Api
+}
+
+func NewSync(db *gorm.DB, api *zenmoney.Api) *Sync {
+	return &Sync{db: db, api: api}
+}
 
 func (s *Sync) FullSync() {
 	loadSpin := s.startSpinner("Загрузка данных")
 
-	app, _ := app2.GetGlobalApp()
+	s.ClearTables()
 
-	db := app.GetContainer().GetDb().GetGorm()
-	db.Where("`id` != ?", "").Delete(&model.Transaction{})
-	db.Where("`id` != ?", "").Delete(&model.Account{})
-	db.Where("`id` != ?", "").Delete(&model.Tag{})
-	db.Where("`id` != ?", "").Delete(&model.Instrument{})
-
-	api := zenmoney.NewApi(&http.Client{})
-
-	diff, _ := api.Diff()
+	diff, _ := s.api.Diff()
 
 	s.stopSpinner(loadSpin, "Загрузка завершена")
 
 	tagsSpin := s.startSpinner("Сохранение тэгов")
 	var cntTags int
 	for _, tag := range diff.Tag {
-		db.Create(&model.Tag{
+		s.db.Create(&model.Tag{
 			Id:    tag.Id,
 			Title: tag.Title,
 		})
@@ -44,7 +42,7 @@ func (s *Sync) FullSync() {
 	intSpinner := s.startSpinner("Сохранение валют")
 	var cntInstruments int
 	for _, inc := range diff.Instrument {
-		db.Create(&model.Instrument{
+		s.db.Create(&model.Instrument{
 			Id:         inc.Id,
 			Title:      inc.Title,
 			ShortTitle: inc.ShortTitle,
@@ -58,7 +56,7 @@ func (s *Sync) FullSync() {
 	accSpinner := s.startSpinner("Сохранение счетов")
 	var cntAccounts int
 	for _, account := range diff.Account {
-		db.Create(&model.Account{
+		s.db.Create(&model.Account{
 			Id:         account.Id,
 			Title:      account.Title,
 			Balance:    account.Balance,
@@ -76,7 +74,7 @@ func (s *Sync) FullSync() {
 		for _, tag := range transaction.Tag {
 			tags = append(tags, model.Tag{Id: tag})
 		}
-		db.Create(&model.Transaction{
+		s.db.Create(&model.Transaction{
 			Id:                transaction.Id,
 			Changed:           transaction.Changed,
 			Created:           transaction.Created,
@@ -113,4 +111,11 @@ func (s *Sync) startSpinner(title string) *pterm.SpinnerPrinter {
 
 func (s *Sync) stopSpinner(spinner *pterm.SpinnerPrinter, title string) {
 	spinner.Success(title)
+}
+
+func (s *Sync) ClearTables() {
+	s.db.Where("`id` != ?", "").Delete(&model.Transaction{})
+	s.db.Where("`id` != ?", "").Delete(&model.Account{})
+	s.db.Where("`id` != ?", "").Delete(&model.Tag{})
+	s.db.Where("`id` != ?", "").Delete(&model.Instrument{})
 }
