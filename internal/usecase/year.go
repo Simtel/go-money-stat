@@ -16,6 +16,9 @@ type MonthStat struct {
 	OutCome float64
 }
 
+type YearInterface interface {
+	GetYearStat()
+}
 type Year struct {
 	api *zenmoney.Api
 }
