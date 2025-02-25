@@ -10,6 +10,10 @@ type DB struct {
 	db *gorm.DB
 }
 
+type DbInterface interface {
+	GetGorm() *gorm.DB
+}
+
 func NewDB() *DB {
 	db, err := gorm.Open(sqlite.Open("zenmoney.db?cache=shared&mode=rwc"), &gorm.Config{})
 	if err != nil {
