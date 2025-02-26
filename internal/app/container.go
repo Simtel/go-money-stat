@@ -6,14 +6,14 @@ import (
 )
 
 type Container struct {
-	db *DB
+	db DbInterface
 }
 
-func NewContainer(db *DB) *Container {
+func NewContainer(db DbInterface) *Container {
 	return &Container{db: db}
 }
 
-func (c *Container) GetDb() *DB {
+func (c *Container) GetDb() DbInterface {
 	return c.db
 }
 

@@ -16,19 +16,18 @@ func TestContainer(t *testing.T) {
 
 	container := NewContainer(mockDB)
 
-	// Тестирование метода GetDb
+	mockDB.EXPECT().GetGorm()
+
 	if container.GetDb() != mockDB {
 		t.Errorf("Ожидалось, что метод GetDb вернет %v, но получили %v", mockDB, container.GetDb())
 	}
 
-	// Тестирование метода GetTransactionRepository
 	mockGorm := mockDB.GetGorm()
 	mockTransactionRepository := transactions.NewRepository(mockGorm)
 	if container.GetTransactionRepository() != mockTransactionRepository {
 		t.Errorf("Ожидалось, что метод GetTransactionRepository вернет %v, но получили %v", mockTransactionRepository, container.GetTransactionRepository())
 	}
 
-	// Тестирование метода GetAccountRepository
 	mockAccountRepository := accounts.NewRepository(mockGorm)
 	if container.GetAccountRepository() != mockAccountRepository {
 		t.Errorf("Ожидалось, что метод GetAccountRepository вернет %v, но получили %v", mockAccountRepository, container.GetAccountRepository())

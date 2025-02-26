@@ -14,7 +14,7 @@ type DbInterface interface {
 	GetGorm() *gorm.DB
 }
 
-func NewDB() *DB {
+func NewDB() DbInterface {
 	db, err := gorm.Open(sqlite.Open("zenmoney.db?cache=shared&mode=rwc"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
