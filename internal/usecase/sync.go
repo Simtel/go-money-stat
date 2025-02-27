@@ -66,10 +66,10 @@ func (s *Sync) FullSync() {
 	}
 	accSpinner.Success("Сохранение завершено!")
 
-	trSpinner := s.startSpinner("Сохранение транзакций")
+	p, _ := pterm.DefaultProgressbar.WithTotal(len(diff.Transaction)).WithTitle("Сохранение транзакций").Start()
 	var cntTransactions int
 	for _, transaction := range diff.Transaction {
-
+		p.UpdateTitle("Сохранение транзакции " + strconv.Itoa(cntTransactions))
 		var tags []model.Tag
 		for _, tag := range transaction.Tag {
 			tags = append(tags, model.Tag{Id: tag})
@@ -89,8 +89,9 @@ func (s *Sync) FullSync() {
 			Tag:               tags,
 		})
 		cntTransactions++
+		p.Increment()
+
 	}
-	s.stopSpinner(trSpinner, "Сохранение завершено!")
 
 	fmt.Println("Загружено транзакций:" + strconv.Itoa(cntTransactions))
 	fmt.Println("Загружено тэгов:" + strconv.Itoa(cntTags))
