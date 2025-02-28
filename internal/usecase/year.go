@@ -27,7 +27,7 @@ func NewYear(api *zenmoney.Api) *Year {
 	return &Year{api: api}
 }
 
-func (y *Year) GetYearStat() {
+func (y *Year) GetYearStat(selectYear int) {
 	api := zenmoney.NewApi(&http.Client{})
 
 	stats := make(map[string]MonthStat)

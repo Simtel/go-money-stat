@@ -36,9 +36,11 @@ func RunYear() *cobra.Command {
 
 		api := zenmoney.NewApi(&http.Client{})
 
+		selectYear, _ := strconv.Atoi(args[0])
+
 		year := usecase.NewYear(api)
 
-		year.GetYearStat()
+		year.GetYearStat(selectYear)
 
 		return nil
 	}
