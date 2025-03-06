@@ -12,10 +12,10 @@ import (
 )
 
 type Month struct {
-	repo *transactionsRepo.Repository
+	repo transactionsRepo.RepositoryInterface
 }
 
-func NewMonth(repo *transactionsRepo.Repository) *Month {
+func NewMonth(repo transactionsRepo.RepositoryInterface) *Month {
 	return &Month{repo: repo}
 }
 

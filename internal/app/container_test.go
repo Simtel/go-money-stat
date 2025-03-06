@@ -4,7 +4,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
-	"money-stat/mock_app"
+	"money-stat/internal/app/mock_app"
 	"reflect"
 	"testing"
 )

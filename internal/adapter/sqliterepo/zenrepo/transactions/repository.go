@@ -2,12 +2,20 @@ package transactions
 
 import (
 	"gorm.io/gorm"
+	"money-stat/internal/model"
+	"time"
 )
 
 type Repository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *Repository {
+type RepositoryInterface interface {
+	GetCurrentMonth() []model.Transaction
+	GetPreviousMonth() []model.Transaction
+	GetBetweenDate(first time.Time, last time.Time) []model.Transaction
+}
+
+func NewRepository(db *gorm.DB) RepositoryInterface {
 	return &Repository{db: db}
 }

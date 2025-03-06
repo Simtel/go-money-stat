@@ -17,7 +17,7 @@ func (c *Container) GetDb() DbInterface {
 	return c.db
 }
 
-func (c *Container) GetTransactionRepository() *transactions.Repository {
+func (c *Container) GetTransactionRepository() transactions.RepositoryInterface {
 	return transactions.NewRepository(c.db.GetGorm())
 }
 
