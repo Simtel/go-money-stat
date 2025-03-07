@@ -1,13 +1,9 @@
 package usecase
 
 import (
-	"fmt"
-	"github.com/pterm/pterm"
 	"log"
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"money-stat/internal/model"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -19,8 +15,9 @@ func NewMonth(repo transactionsRepo.RepositoryInterface) *Month {
 	return &Month{repo: repo}
 }
 
-func (m *Month) GetMonthStat(month string) {
+func (m *Month) GetMonthStat(month string) MonthStatDto {
 
+	var monthStat MonthStatDto
 	log.Printf("Show %s months transactions", month)
 
 	var transactions []model.Transaction
@@ -35,11 +32,6 @@ func (m *Month) GetMonthStat(month string) {
 	var outComeSumm, inComeSumm float64
 
 	var cnt int
-
-	tableData := pterm.TableData{
-		{"Дата", "Категория", "Сумма", "Счет", "Дата создания"},
-		{" ", " ", " ", " ", " "},
-	}
 
 	for _, transaction := range transactions {
 		cnt++
@@ -67,9 +59,9 @@ func (m *Month) GetMonthStat(month string) {
 		}
 
 		tCreatedDate := time.Unix(transaction.Created, 0)
-		tableData = append(
-			tableData,
-			[]string{
+		monthStat.Transactions = append(
+			monthStat.Transactions,
+			MonthStatTransactionDto{
 				transaction.Date,
 				transactionTags,
 				transaction.FormatAmount(),
@@ -84,39 +76,12 @@ func (m *Month) GetMonthStat(month string) {
 		if transaction.Income > 0 && transaction.Outcome == 0 {
 			inComeSumm = inComeSumm + transaction.Income
 		}
-	}
 
-	errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
-	if errTable != nil {
-		fmt.Println(errTable)
 	}
+	monthStat.OutComeSumm = outComeSumm
+	monthStat.InComeSumm = inComeSumm
+	monthStat.Count = cnt
 
-	monthDiff := strconv.FormatFloat(inComeSumm-outComeSumm, 'f', 2, 64)
-	if strings.HasPrefix(monthDiff, "-") {
-		monthDiff = pterm.FgRed.Sprint(monthDiff)
-	} else {
-		monthDiff = pterm.FgGreen.Sprint(monthDiff)
-	}
-
-	summData := pterm.TableData{
-		{
-			"Транзакций",
-			"Доходов в рублях",
-			"Расходов в рублях",
-			"Чистыми",
-		},
-		{" ", " ", ""},
-		{
-			strconv.Itoa(cnt),
-			strconv.FormatFloat(inComeSumm, 'f', 2, 64),
-			strconv.FormatFloat(outComeSumm, 'f', 2, 64),
-			monthDiff,
-		},
-	}
-
-	errSummTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(summData).Render()
-	if errSummTable != nil {
-		fmt.Println(errSummTable)
-	}
+	return monthStat
 
 }
