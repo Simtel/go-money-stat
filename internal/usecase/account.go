@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"fmt"
-	"github.com/pterm/pterm"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
 	"strconv"
 )
@@ -11,63 +9,49 @@ type Accounts struct {
 	repo *accounts.Repository
 }
 
+type AccountDto struct {
+	Account  string
+	Balance  string
+	Currency string
+}
+
+type AccountStatDto struct {
+	Accounts   []AccountDto
+	RateDollar float64
+	SummRuble  float64
+	SummDollar float64
+}
+
 func NewAccounts(repo *accounts.Repository) *Accounts {
 	return &Accounts{repo: repo}
 }
 
-func (a *Accounts) GetAccounts() {
+func (a *Accounts) GetAccounts() AccountStatDto {
 
 	accountsList := a.repo.GetAll()
 
-	tableData := pterm.TableData{
-		{"Счет", "Баланс", "Валюта"},
-		{" ", " ", " "},
-	}
+	var statDto AccountStatDto
 
-	rateDollar := 0.0
-
-	var summRuble float64
-	var summDollar float64
+	statDto.RateDollar = 0.0
 
 	for _, account := range accountsList {
-		tableData = append(
-			tableData,
-			[]string{
+		statDto.Accounts = append(
+			statDto.Accounts,
+			AccountDto{
 				account.Title,
 				strconv.FormatFloat(account.Balance, 'f', 2, 64),
 				account.Currency.ShortTitle,
 			},
 		)
 		if account.IsRuble() {
-			summRuble = summRuble + account.Balance
+			statDto.SummRuble = statDto.SummRuble + account.Balance
 		}
 		if account.IsDollar() {
-			summDollar = summDollar + account.Balance
-			rateDollar = account.Currency.Rate
+			statDto.SummDollar = statDto.SummDollar + account.Balance
+			statDto.RateDollar = account.Currency.Rate
 		}
 	}
 
-	errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
-	if errTable != nil {
-		fmt.Println(errTable)
-	}
+	return statDto
 
-	summData := pterm.TableData{
-		{
-			"Итого в рублях",
-			"Итого в долларах",
-			"Общая сумма в рублях",
-		},
-		{" ", " "},
-		{
-			strconv.FormatFloat(summRuble, 'f', 2, 64),
-			strconv.FormatFloat(summDollar, 'f', 2, 64),
-			strconv.FormatFloat(summRuble+(summDollar*rateDollar), 'f', 2, 64),
-		},
-	}
-
-	errSummTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(summData).Render()
-	if errSummTable != nil {
-		fmt.Println(errSummTable)
-	}
 }
