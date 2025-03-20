@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	app2 "money-stat/internal/app"
+	"money-stat/internal/app"
 	"money-stat/internal/usecase"
 	"strconv"
 	"strings"
@@ -20,11 +20,11 @@ func RunMonths() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-		app, _ := app2.GetGlobalApp()
+		application, _ := app.GetGlobalApp()
 
 		month := args[0]
 
-		months := usecase.NewMonth(app.GetContainer().GetTransactionRepository())
+		months := usecase.NewMonth(application.GetContainer().GetTransactionRepository())
 
 		stat := months.GetMonthStat(month)
 
