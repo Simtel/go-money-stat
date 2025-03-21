@@ -5,7 +5,7 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"log"
-	app2 "money-stat/internal/app"
+	"money-stat/internal/app"
 	"money-stat/internal/usecase"
 	"strconv"
 )
@@ -19,9 +19,8 @@ func RunAccountList() *cobra.Command {
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
 		log.Println("Show accounts called")
-		app, _ := app2.GetGlobalApp()
 
-		accounts := usecase.NewAccounts(app.GetContainer().GetAccountRepository())
+		accounts := usecase.NewAccounts(app.GetGlobalApp().GetContainer().GetAccountRepository())
 
 		stat := accounts.GetAccounts()
 

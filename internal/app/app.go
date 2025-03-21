@@ -1,7 +1,5 @@
 package app
 
-import "errors"
-
 type App struct {
 	c *Container
 }
@@ -16,12 +14,12 @@ func SetGlobalApp(app *App) {
 	a = app
 }
 
-func GetGlobalApp() (*App, error) {
+func GetGlobalApp() *App {
 	if a == nil {
-		return nil, errors.New("global app is not initialized")
+		panic("global app is not initialized")
 	}
 
-	return a, nil
+	return a
 }
 
 func (a *App) GetContainer() *Container {

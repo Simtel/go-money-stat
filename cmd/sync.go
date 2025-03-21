@@ -16,9 +16,7 @@ func RunSync() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-		application, _ := app.GetGlobalApp()
-
-		db := application.GetContainer().GetDb().GetGorm()
+		db := app.GetGlobalApp().GetContainer().GetDb().GetGorm()
 		api := zenmoney.NewApi(&http.Client{})
 		sync := usecase.NewSync(db, api)
 

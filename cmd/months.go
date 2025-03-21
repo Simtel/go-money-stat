@@ -20,11 +20,9 @@ func RunMonths() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-		application, _ := app.GetGlobalApp()
-
 		month := args[0]
 
-		months := usecase.NewMonth(application.GetContainer().GetTransactionRepository())
+		months := usecase.NewMonth(app.GetGlobalApp().GetContainer().GetTransactionRepository())
 
 		stat := months.GetMonthStat(month)
 
