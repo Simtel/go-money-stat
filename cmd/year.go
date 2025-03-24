@@ -3,9 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"money-stat/internal/services/zenmoney"
+	"money-stat/internal/app"
 	"money-stat/internal/usecase"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -34,11 +33,9 @@ func RunYear() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-		api := zenmoney.NewApi(&http.Client{})
-
 		selectYear, _ := strconv.Atoi(args[0])
 
-		year := usecase.NewYear(api)
+		year := usecase.NewYear(app.GetGlobalApp().GetContainer().GetTransactionRepository())
 
 		year.GetYearStat(selectYear)
 

@@ -3,8 +3,7 @@ package usecase
 import (
 	"fmt"
 	"github.com/pterm/pterm"
-	"money-stat/internal/services/zenmoney"
-	"net/http"
+	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"sort"
 	"strconv"
 	"time"
@@ -20,21 +19,18 @@ type YearInterface interface {
 	GetYearStat()
 }
 type Year struct {
-	api *zenmoney.Api
+	repository transactions.RepositoryInterface
 }
 
-func NewYear(api *zenmoney.Api) *Year {
-	return &Year{api: api}
+func NewYear(repository transactions.RepositoryInterface) *Year {
+	return &Year{repository: repository}
 }
 
 func (y *Year) GetYearStat(selectYear int) {
-	api := zenmoney.NewApi(&http.Client{})
 
 	stats := make(map[string]MonthStat)
 
-	diff, _ := api.Diff()
-
-	for _, transaction := range diff.Transaction {
+	for _, transaction := range y.repository.GetAll() {
 		layout := "2006-01-02"
 		tTime, _ := time.Parse(layout, transaction.Date)
 		key := tTime.Format("2006-01")
