@@ -21,7 +21,7 @@ func TestRunYear(t *testing.T) {
 		{
 			name:     "Неверный год",
 			args:     []string{"2019"},
-			expected: fmt.Errorf("Указан неверный год: 2019"),
+			expected: fmt.Errorf("указан неверный год: 2019"),
 		},
 	}
 
