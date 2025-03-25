@@ -15,6 +15,7 @@ type RepositoryInterface interface {
 	GetPreviousMonth() []model.Transaction
 	GetBetweenDate(first time.Time, last time.Time) []model.Transaction
 	GetAll() []model.Transaction
+	GetByYear(year int) []model.Transaction
 }
 
 func NewRepository(db *gorm.DB) RepositoryInterface {

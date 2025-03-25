@@ -33,6 +33,11 @@ func (m *MockRepository) GetAll() []model.Transaction {
 	return args.Get(0).([]model.Transaction)
 }
 
+func (m *MockRepository) GetByYear(year int) []model.Transaction {
+	args := m.Called(year)
+	return args.Get(0).([]model.Transaction)
+}
+
 func TestGetMonthStat(t *testing.T) {
 	// Create a mock repository
 	mockRepo := &MockRepository{}

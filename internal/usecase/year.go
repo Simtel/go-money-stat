@@ -30,7 +30,7 @@ func (y *Year) GetYearStat(selectYear int) {
 
 	stats := make(map[string]MonthStat)
 
-	for _, transaction := range y.repository.GetAll() {
+	for _, transaction := range y.repository.GetByYear(selectYear) {
 		layout := "2006-01-02"
 		tTime, _ := time.Parse(layout, transaction.Date)
 		key := tTime.Format("2006-01")

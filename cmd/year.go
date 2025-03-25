@@ -27,7 +27,7 @@ func RunYear() *cobra.Command {
 			if selectYear > 2020 && selectYear <= time.Now().Year() {
 				return nil
 			}
-			return fmt.Errorf("Указан неверный год: %s", args[0])
+			return fmt.Errorf("указан неверный год: %s", args[0])
 		},
 	}
 

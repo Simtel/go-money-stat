@@ -27,7 +27,10 @@ func TestNew(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			for key, value := range tc.env {
-				os.Setenv(key, value)
+				err := os.Setenv(key, value)
+				if err != nil {
+					panic(err)
+				}
 			}
 
 			config := New()
