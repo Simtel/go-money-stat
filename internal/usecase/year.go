@@ -34,9 +34,6 @@ func (y *Year) GetYearStat(selectYear int) {
 		layout := "2006-01-02"
 		tTime, _ := time.Parse(layout, transaction.Date)
 		key := tTime.Format("2006-01")
-		if tTime.Format("2006") < "2020" || transaction.IsDeleted() {
-			continue
-		}
 		stat, exists := stats[key]
 		if !exists {
 			stat = MonthStat{Month: tTime.Format("2006-01")}
