@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"money-stat/internal/app"
 	"money-stat/internal/usecase"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -37,7 +39,41 @@ func RunYear() *cobra.Command {
 
 		year := usecase.NewYear(app.GetGlobalApp().GetContainer().GetTransactionRepository())
 
-		year.GetYearStat(selectYear)
+		valuesSlice := year.GetYearStat(selectYear)
+
+		sort.Slice(valuesSlice, func(i, j int) bool {
+			return valuesSlice[i].Month < valuesSlice[j].Month
+		})
+
+		tableData := pterm.TableData{
+			{"Месяц", "Доход", "Расход", "Чистыми"},
+			{" ", " ", " ", " "},
+		}
+
+		for _, row := range valuesSlice {
+			diff := row.Income - row.OutCome
+			var diffStr string
+			if diff < 0 {
+				diffStr = pterm.FgRed.Sprint(strconv.FormatFloat(diff, 'f', 2, 64))
+			} else {
+				diffStr = pterm.FgGreen.Sprint(strconv.FormatFloat(diff, 'f', 2, 64))
+			}
+			tableData = append(
+				tableData,
+				[]string{
+					row.Month,
+					strconv.FormatFloat(row.Income, 'f', 2, 64),
+					strconv.FormatFloat(row.OutCome, 'f', 2, 64),
+					diffStr,
+				},
+			)
+
+		}
+
+		errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
+		if errTable != nil {
+			fmt.Println(errTable)
+		}
 
 		return nil
 	}

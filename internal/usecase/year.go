@@ -1,11 +1,7 @@
 package usecase
 
 import (
-	"fmt"
-	"github.com/pterm/pterm"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
-	"sort"
-	"strconv"
 	"time"
 )
 
@@ -26,7 +22,7 @@ func NewYear(repository transactions.RepositoryInterface) *Year {
 	return &Year{repository: repository}
 }
 
-func (y *Year) GetYearStat(selectYear int) {
+func (y *Year) GetYearStat(selectYear int) []MonthStat {
 
 	stats := make(map[string]MonthStat)
 
@@ -54,38 +50,6 @@ func (y *Year) GetYearStat(selectYear int) {
 		valuesSlice = append(valuesSlice, value)
 	}
 
-	sort.Slice(valuesSlice, func(i, j int) bool {
-		return valuesSlice[i].Month < valuesSlice[j].Month
-	})
-
-	tableData := pterm.TableData{
-		{"Месяц", "Доход", "Расход", "Чистыми"},
-		{" ", " ", " ", " "},
-	}
-
-	for _, row := range valuesSlice {
-		diff := row.Income - row.OutCome
-		var diffStr string
-		if diff < 0 {
-			diffStr = pterm.FgRed.Sprint(strconv.FormatFloat(diff, 'f', 2, 64))
-		} else {
-			diffStr = pterm.FgGreen.Sprint(strconv.FormatFloat(diff, 'f', 2, 64))
-		}
-		tableData = append(
-			tableData,
-			[]string{
-				row.Month,
-				strconv.FormatFloat(row.Income, 'f', 2, 64),
-				strconv.FormatFloat(row.OutCome, 'f', 2, 64),
-				diffStr,
-			},
-		)
-
-	}
-
-	errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
-	if errTable != nil {
-		fmt.Println(errTable)
-	}
+	return valuesSlice
 
 }
