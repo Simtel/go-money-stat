@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"money-stat/internal/app"
 	"money-stat/internal/usecase"
-	"sort"
 	"strconv"
 	"time"
 )
@@ -40,10 +39,6 @@ func RunYear() *cobra.Command {
 		year := usecase.NewYear(app.GetGlobalApp().GetContainer().GetTransactionRepository())
 
 		valuesSlice := year.GetYearStat(selectYear)
-
-		sort.Slice(valuesSlice, func(i, j int) bool {
-			return valuesSlice[i].Month < valuesSlice[j].Month
-		})
 
 		tableData := pterm.TableData{
 			{"Месяц", "Доход", "Расход", "Чистыми"},

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
+	"sort"
 	"time"
 )
 
@@ -49,6 +50,10 @@ func (y *Year) GetYearStat(selectYear int) []MonthStat {
 	for _, value := range stats {
 		valuesSlice = append(valuesSlice, value)
 	}
+
+	sort.Slice(valuesSlice, func(i, j int) bool {
+		return valuesSlice[i].Month < valuesSlice[j].Month
+	})
 
 	return valuesSlice
 
