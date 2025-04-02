@@ -30,6 +30,7 @@ func main() {
 		cmd.RunMonths(),
 		cmd.RunYear(),
 		cmd.RunSync(),
+		cmd.RunCapital(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {
