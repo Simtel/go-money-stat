@@ -30,7 +30,7 @@ func (c *Capital) GetCapital(year int) {
 
 	stats := make(map[string]CapitalDto)
 
-	transactions := c.repo.GetAll()
+	transactions := c.repo.GetAll(false)
 
 	for _, transaction := range transactions {
 		layout := "2006-01-02"
