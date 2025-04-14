@@ -38,7 +38,7 @@ func (c *Capital) GetCapital(year int) {
 		key := tTime.Format("2006-01")
 		stat, exists := stats[key]
 		if !exists {
-			stat = CapitalDto{Month: tTime.Format("2006-01")}
+			stat = CapitalDto{Month: key}
 		}
 		if transaction.Outcome > 0 && transaction.Income == 0 {
 			stat.Balance = stat.Balance - transaction.Outcome
@@ -59,11 +59,8 @@ func (c *Capital) GetCapital(year int) {
 	sort.Slice(valuesSlice, func(i, j int) bool {
 		return valuesSlice[i].Month < valuesSlice[j].Month
 	})
-	var summ float64
-	for index, row := range valuesSlice {
-		if index == 0 {
-			summ = 0
-		}
+	summ := 0.0
+	for _, row := range valuesSlice {
 		summ = summ + row.Balance
 
 		tableData = append(
