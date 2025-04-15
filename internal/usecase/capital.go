@@ -41,11 +41,21 @@ func (c *Capital) GetCapital(year int) {
 			stat = CapitalDto{Month: key}
 		}
 		if transaction.Outcome > 0 && transaction.Income == 0 {
-			stat.Balance = stat.Balance - transaction.Outcome
+			if transaction.OutAccount.IsDollar() {
+				stat.Balance = stat.Balance - (transaction.Outcome * transaction.OutAccount.Currency.Rate)
+			} else {
+				stat.Balance = stat.Balance - transaction.Outcome
+			}
+
 		}
 
 		if transaction.Income > 0 && transaction.Outcome == 0 {
-			stat.Balance = stat.Balance + transaction.Income
+			if transaction.InAccount.IsDollar() {
+				stat.Balance = stat.Balance + (transaction.Income * transaction.InAccount.Currency.Rate)
+			} else {
+				stat.Balance = stat.Balance + transaction.Income
+			}
+
 		}
 
 		stats[key] = stat

@@ -7,6 +7,10 @@ func (r *Repository) GetAll(includeDeleted bool) []model.Transaction {
 	var transactions []model.Transaction
 	err := db.Model(&model.Transaction{}).
 		Where(" deleted = ?", includeDeleted).
+		Joins("InAccount").
+		Joins("OutAccount").
+		Joins("InAccount.Currency").
+		Joins("OutAccount.Currency").
 		Order("date ASC").
 		Find(&transactions).
 		Error
