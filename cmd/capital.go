@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"money-stat/internal/app"
 	"money-stat/internal/usecase"
@@ -35,9 +36,33 @@ func RunCapital() *cobra.Command {
 
 		selectYear, _ := strconv.Atoi(args[0])
 
+		tableData := pterm.TableData{
+			{"Месяц", "Капитал"},
+			{" ", " "},
+		}
+
 		capital := usecase.NewCapital(app.GetGlobalApp().GetContainer().GetTransactionRepository())
 
-		capital.GetCapital(selectYear)
+		valuesSlice := capital.GetCapital(selectYear)
+
+		summ := 0.0
+		for _, row := range valuesSlice {
+			summ = summ + row.Balance
+
+			tableData = append(
+				tableData,
+				[]string{
+					row.Month,
+					strconv.FormatFloat(summ, 'f', 2, 64),
+				},
+			)
+
+		}
+
+		errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
+		if errTable != nil {
+			fmt.Println(errTable)
+		}
 
 		return nil
 	}

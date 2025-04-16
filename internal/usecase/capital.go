@@ -1,11 +1,8 @@
 package usecase
 
 import (
-	"fmt"
-	"github.com/pterm/pterm"
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"sort"
-	"strconv"
 	"time"
 )
 
@@ -22,11 +19,7 @@ func NewCapital(repo transactionsRepo.RepositoryInterface) *Capital {
 	return &Capital{repo: repo}
 }
 
-func (c *Capital) GetCapital(year int) {
-	tableData := pterm.TableData{
-		{"Месяц", "Капитал"},
-		{" ", " "},
-	}
+func (c *Capital) GetCapital(year int) []CapitalDto {
 
 	stats := make(map[string]CapitalDto)
 
@@ -69,22 +62,6 @@ func (c *Capital) GetCapital(year int) {
 	sort.Slice(valuesSlice, func(i, j int) bool {
 		return valuesSlice[i].Month < valuesSlice[j].Month
 	})
-	summ := 0.0
-	for _, row := range valuesSlice {
-		summ = summ + row.Balance
 
-		tableData = append(
-			tableData,
-			[]string{
-				row.Month,
-				strconv.FormatFloat(summ, 'f', 2, 64),
-			},
-		)
-
-	}
-
-	errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
-	if errTable != nil {
-		fmt.Println(errTable)
-	}
+	return valuesSlice
 }
