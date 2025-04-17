@@ -48,7 +48,10 @@ func (c *Capital) GetCapital(year int) []CapitalDto {
 			} else {
 				stat.Balance = stat.Balance + transaction.Income
 			}
+		}
 
+		if transaction.Outcome > 0 && transaction.Income > 0 {
+			stat.Balance = stat.Balance + (transaction.Outcome - transaction.Income)
 		}
 
 		stats[key] = stat
