@@ -14,7 +14,7 @@ type RepositoryInterface interface {
 	GetCurrentMonth() []model.Transaction
 	GetPreviousMonth() []model.Transaction
 	GetBetweenDate(first time.Time, last time.Time) []model.Transaction
-	GetAll(includeDeleted bool) []model.Transaction
+	GetAll() []model.Transaction
 	GetByYear(year int) []model.Transaction
 }
 

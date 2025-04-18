@@ -28,8 +28,8 @@ func (m *MockRepository) GetBetweenDate(first time.Time, last time.Time) []model
 	return args.Get(0).([]model.Transaction)
 }
 
-func (m *MockRepository) GetAll(includeDeleted bool) []model.Transaction {
-	args := m.Called(includeDeleted)
+func (m *MockRepository) GetAll() []model.Transaction {
+	args := m.Called()
 	return args.Get(0).([]model.Transaction)
 }
 

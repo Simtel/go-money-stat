@@ -23,7 +23,7 @@ func (c *Capital) GetCapital(year int) []CapitalDto {
 
 	stats := make(map[string]CapitalDto)
 
-	transactions := c.repo.GetAll(false)
+	transactions := c.repo.GetAll()
 
 	for _, transaction := range transactions {
 		layout := "2006-01-02"
@@ -34,7 +34,7 @@ func (c *Capital) GetCapital(year int) []CapitalDto {
 			stat = CapitalDto{Month: key}
 		}
 		if transaction.Outcome > 0 && transaction.Income == 0 {
-			if transaction.OutAccount.IsDollar() {
+			if !transaction.OutAccount.IsRuble() {
 				stat.Balance = stat.Balance - (transaction.Outcome * transaction.OutAccount.Currency.Rate)
 			} else {
 				stat.Balance = stat.Balance - transaction.Outcome
@@ -43,7 +43,7 @@ func (c *Capital) GetCapital(year int) []CapitalDto {
 		}
 
 		if transaction.Income > 0 && transaction.Outcome == 0 {
-			if transaction.InAccount.IsDollar() {
+			if !transaction.InAccount.IsRuble() {
 				stat.Balance = stat.Balance + (transaction.Income * transaction.InAccount.Currency.Rate)
 			} else {
 				stat.Balance = stat.Balance + transaction.Income
@@ -51,7 +51,12 @@ func (c *Capital) GetCapital(year int) []CapitalDto {
 		}
 
 		if transaction.Outcome > 0 && transaction.Income > 0 {
-			stat.Balance = stat.Balance + (transaction.Outcome - transaction.Income)
+			if !transaction.InAccount.IsRuble() {
+				stat.Balance = stat.Balance + ((transaction.Income * transaction.InAccount.Currency.Rate) - (transaction.Outcome * transaction.OutAccount.Currency.Rate))
+			} else {
+				stat.Balance = stat.Balance + (transaction.Outcome - transaction.Income)
+			}
+
 		}
 
 		stats[key] = stat
