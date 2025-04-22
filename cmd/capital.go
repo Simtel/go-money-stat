@@ -7,6 +7,7 @@ import (
 	"money-stat/internal/app"
 	"money-stat/internal/usecase"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -43,12 +44,14 @@ func RunCapital() *cobra.Command {
 
 		capital := usecase.NewCapital(app.GetGlobalApp().GetContainer().GetTransactionRepository())
 
-		valuesSlice := capital.GetCapital(selectYear)
+		valuesSlice := capital.GetCapital()
 
 		summ := 0.0
 		for _, row := range valuesSlice {
 			summ = summ + row.Balance
-
+			if !strings.HasPrefix(row.Month, strconv.Itoa(selectYear)+"-") {
+				continue
+			}
 			tableData = append(
 				tableData,
 				[]string{

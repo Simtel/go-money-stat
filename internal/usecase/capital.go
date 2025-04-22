@@ -3,8 +3,6 @@ package usecase
 import (
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"sort"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -21,7 +19,7 @@ func NewCapital(repo transactionsRepo.RepositoryInterface) *Capital {
 	return &Capital{repo: repo}
 }
 
-func (c *Capital) GetCapital(year int) []CapitalDto {
+func (c *Capital) GetCapital() []CapitalDto {
 
 	stats := make(map[string]CapitalDto)
 
@@ -66,9 +64,6 @@ func (c *Capital) GetCapital(year int) []CapitalDto {
 
 	var valuesSlice []CapitalDto
 	for _, value := range stats {
-		if !strings.HasPrefix(value.Month, strconv.Itoa(year)+"-") {
-			continue
-		}
 		valuesSlice = append(valuesSlice, value)
 	}
 
