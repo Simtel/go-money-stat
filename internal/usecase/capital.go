@@ -54,7 +54,7 @@ func (c *Capital) GetCapital() []CapitalDto {
 			if !transaction.InAccount.IsRuble() {
 				stat.Balance = stat.Balance + ((transaction.Income * transaction.InAccount.Currency.Rate) - (transaction.Outcome * transaction.OutAccount.Currency.Rate))
 			} else {
-				stat.Balance = stat.Balance + (transaction.Outcome - transaction.Income)
+				stat.Balance = stat.Balance + (transaction.Income - transaction.Outcome)
 			}
 
 		}
