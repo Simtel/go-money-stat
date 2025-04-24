@@ -23,11 +23,14 @@ func (c *Capital) GetCapital() []CapitalDto {
 
 	stats := make(map[string]CapitalDto)
 
-	transactions := c.repo.GetAll()
+	var transactions = c.repo.GetAll()
 
 	for _, transaction := range transactions {
 		layout := "2006-01-02"
-		tTime, _ := time.Parse(layout, transaction.Date)
+		tTime, errTimeParse := time.Parse(layout, transaction.Date)
+		if errTimeParse != nil {
+			panic(errTimeParse)
+		}
 		key := tTime.Format("2006-01")
 		stat, exists := stats[key]
 		if !exists {
