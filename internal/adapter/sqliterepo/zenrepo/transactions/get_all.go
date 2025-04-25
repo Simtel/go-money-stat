@@ -2,7 +2,7 @@ package transactions
 
 import "money-stat/internal/model"
 
-func (r *Repository) GetAll() []model.Transaction {
+func (r *Repository) GetAll() ([]model.Transaction, error) {
 	db := r.db
 	var transactions []model.Transaction
 	err := db.Model(&model.Transaction{}).
@@ -15,8 +15,8 @@ func (r *Repository) GetAll() []model.Transaction {
 		Find(&transactions).
 		Error
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return transactions
+	return transactions, nil
 }

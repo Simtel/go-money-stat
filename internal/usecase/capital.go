@@ -23,7 +23,11 @@ func (c *Capital) GetCapital() []CapitalDto {
 
 	stats := make(map[string]CapitalDto)
 
-	var transactions = c.repo.GetAll()
+	var transactions, err = c.repo.GetAll()
+
+	if err != nil {
+		panic(err)
+	}
 
 	for _, transaction := range transactions {
 		layout := "2006-01-02"

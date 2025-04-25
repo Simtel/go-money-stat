@@ -28,9 +28,9 @@ func (m *MockRepository) GetBetweenDate(first time.Time, last time.Time) []model
 	return args.Get(0).([]model.Transaction)
 }
 
-func (m *MockRepository) GetAll() []model.Transaction {
+func (m *MockRepository) GetAll() ([]model.Transaction, error) {
 	args := m.Called()
-	return args.Get(0).([]model.Transaction)
+	return args.Get(0).([]model.Transaction), nil
 }
 
 func (m *MockRepository) GetByYear(year int) []model.Transaction {
