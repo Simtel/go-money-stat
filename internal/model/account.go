@@ -1,11 +1,12 @@
 package model
 
 type Account struct {
-	Id         string
-	Title      string
-	Balance    float64
-	Instrument int
-	Currency   Instrument `gorm:"foreignKey:Instrument"`
+	Id           string
+	Title        string
+	Balance      float64
+	StartBalance float64
+	Instrument   int
+	Currency     Instrument `gorm:"foreignKey:Instrument"`
 }
 
 func (a *Account) IsRuble() bool {

@@ -57,10 +57,11 @@ func (s *Sync) FullSync() {
 	var cntAccounts int
 	for _, account := range diff.Account {
 		s.db.Create(&model.Account{
-			Id:         account.Id,
-			Title:      account.Title,
-			Balance:    account.Balance,
-			Instrument: account.Instrument,
+			Id:           account.Id,
+			Title:        account.Title,
+			Balance:      account.Balance,
+			Instrument:   account.Instrument,
+			StartBalance: account.StartBalance,
 		})
 		cntAccounts++
 	}
