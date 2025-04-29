@@ -33,7 +33,7 @@ func (y *Year) GetYearStat(selectYear int) []MonthStat {
 		key := tTime.Format("2006-01")
 		stat, exists := stats[key]
 		if !exists {
-			stat = MonthStat{Month: tTime.Format("2006-01")}
+			stat = MonthStat{Month: key}
 		}
 		if transaction.Outcome > 0 && transaction.Income == 0 {
 			stat.OutCome = stat.OutCome + transaction.Outcome
