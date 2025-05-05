@@ -45,7 +45,7 @@ func RunYear() *cobra.Command {
 			{" ", " ", " ", " "},
 		}
 		var prevOutCome = 0.0
-		var prevDiff = ""
+		var prevDiff string
 		for _, row := range valuesSlice {
 			diff := row.Income - row.OutCome
 			var diffStr string
