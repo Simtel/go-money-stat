@@ -44,11 +44,14 @@ func RunYear() *cobra.Command {
 			{"Месяц", "Доход", "Расход", "Чистыми"},
 			{" ", " ", " ", " "},
 		}
-		var prevOutCome = 0.0
-		var prevInCome = 0.0
+
 		var prevDiff string
 		var prevInDiff string
-		for _, row := range valuesSlice {
+		for index, row := range valuesSlice {
+			prevIndex := 0
+			if index > 0 {
+				prevIndex = index - 1
+			}
 			diff := row.Income - row.OutCome
 			var diffStr string
 			if diff < 0 {
@@ -56,13 +59,13 @@ func RunYear() *cobra.Command {
 			} else {
 				diffStr = pterm.FgGreen.Sprint(strconv.FormatFloat(diff, 'f', 2, 64))
 			}
-			if row.OutCome > prevOutCome {
+			if row.OutCome > valuesSlice[prevIndex].OutCome {
 				prevDiff = "↑"
 			} else {
 				prevDiff = "↓"
 			}
 
-			if row.Income > prevInCome {
+			if row.Income > valuesSlice[prevIndex].Income {
 				prevInDiff = "↑"
 			} else {
 				prevInDiff = "↓"
@@ -76,8 +79,6 @@ func RunYear() *cobra.Command {
 					diffStr,
 				},
 			)
-			prevOutCome = row.OutCome
-			prevInCome = row.Income
 
 		}
 
