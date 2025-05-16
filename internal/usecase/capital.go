@@ -2,6 +2,7 @@ package usecase
 
 import (
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
+	"money-stat/internal/model"
 	"sort"
 	"time"
 )
@@ -40,24 +41,8 @@ func (c *Capital) GetCapital() []CapitalDto {
 		if !exists {
 			stat = CapitalDto{Month: key}
 		}
-		if transaction.Outcome > 0 && transaction.Income == 0 {
-			if !transaction.OutAccount.IsRuble() {
-				stat.Balance = stat.Balance - (transaction.Outcome * transaction.OutAccount.Currency.Rate)
-			} else {
-				stat.Balance = stat.Balance - transaction.Outcome
-			}
 
-		}
-
-		if transaction.Income > 0 && transaction.Outcome == 0 {
-			if !transaction.InAccount.IsRuble() {
-				stat.Balance = stat.Balance + (transaction.Income * transaction.InAccount.Currency.Rate)
-			} else {
-				stat.Balance = stat.Balance + transaction.Income
-			}
-		}
-
-		stats[key] = stat
+		stats[key] = c.countBalance(stat, transaction)
 	}
 
 	var valuesSlice []CapitalDto
@@ -70,4 +55,24 @@ func (c *Capital) GetCapital() []CapitalDto {
 	})
 
 	return valuesSlice
+}
+
+func (c *Capital) countBalance(stat CapitalDto, transaction model.Transaction) CapitalDto {
+	if transaction.Outcome > 0 && transaction.Income == 0 {
+		if !transaction.OutAccount.IsRuble() {
+			stat.Balance = stat.Balance - (transaction.Outcome * transaction.OutAccount.Currency.Rate)
+		} else {
+			stat.Balance = stat.Balance - transaction.Outcome
+		}
+
+	}
+
+	if transaction.Income > 0 && transaction.Outcome == 0 {
+		if !transaction.InAccount.IsRuble() {
+			stat.Balance = stat.Balance + (transaction.Income * transaction.InAccount.Currency.Rate)
+		} else {
+			stat.Balance = stat.Balance + transaction.Income
+		}
+	}
+	return stat
 }
