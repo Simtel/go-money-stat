@@ -39,14 +39,10 @@ func (m *MockRepository) GetByYear(year int) []model.Transaction {
 }
 
 func TestGetMonthStat(t *testing.T) {
-	// Create a mock repository
 	mockRepo := &MockRepository{}
-
-	// Create a Month instance
 	month := NewMonth(mockRepo)
 
 	t.Run("Get current month stat", func(t *testing.T) {
-		// Arrange
 		mockRepo.On("GetCurrentMonth").Return([]model.Transaction{
 			{
 				Date:       "2023-04-01",
@@ -77,10 +73,8 @@ func TestGetMonthStat(t *testing.T) {
 			},
 		})
 
-		// Act
 		monthStat := month.GetMonthStat("current")
 
-		// Assert
 		assert.Equal(t, 3, len(monthStat.Transactions))
 		assert.Equal(t, 150.0, monthStat.OutComeSumm)
 		assert.Equal(t, 200.0, monthStat.InComeSumm)
@@ -88,7 +82,6 @@ func TestGetMonthStat(t *testing.T) {
 	})
 
 	t.Run("Get previous month stat", func(t *testing.T) {
-		// Arrange
 		mockRepo.On("GetPreviousMonth").Return([]model.Transaction{
 			{
 				Date:       "2023-03-01",
@@ -119,13 +112,42 @@ func TestGetMonthStat(t *testing.T) {
 			},
 		})
 
-		// Act
 		monthStat := month.GetMonthStat("previous")
 
-		// Assert
 		assert.Equal(t, 3, len(monthStat.Transactions))
 		assert.Equal(t, 100.0, monthStat.OutComeSumm)
 		assert.Equal(t, 150.0, monthStat.InComeSumm)
 		assert.Equal(t, 3, monthStat.Count)
 	})
+}
+
+func getMonth() *Month {
+
+	return NewMonth(&MockRepository{})
+}
+
+func TestGetTags(t *testing.T) {
+
+	month := getMonth()
+
+	tag1 := model.Tag{Title: "tag1"}
+	tag2 := model.Tag{Title: "tag2"}
+	transaction := model.Transaction{
+		Tag: []model.Tag{tag1, tag2},
+	}
+
+	assert.Equal(t, "tag1 tag2 ", month.getTags(transaction))
+}
+
+func TestGetAccountTitle(t *testing.T) {
+	month := getMonth()
+
+	accountIn := model.Account{Title: "Debit Card"}
+	accountOut := model.Account{Title: "Credit Card"}
+
+	transactionIn := model.Transaction{InAccount: accountIn, Income: 100}
+	transactionOut := model.Transaction{OutAccount: accountOut, Outcome: 100}
+
+	assert.Equal(t, "Debit Card", month.getAccountTitle(transactionIn))
+	assert.Equal(t, "Credit Card", month.getAccountTitle(transactionOut))
 }
