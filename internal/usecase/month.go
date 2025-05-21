@@ -56,7 +56,7 @@ func (m *Month) GetMonthStat(month string) MonthStatDto {
 			monthStat.Transactions,
 			MonthStatTransactionDto{
 				transaction.Date,
-				m.getTags(transaction),
+				transaction.GetTagsTitle(),
 				transaction.FormatAmount(),
 				m.getAccountTitle(transaction),
 				tCreatedDate.Format("2006-01-02 15:04:05"),
@@ -93,16 +93,4 @@ func (m *Month) getAccountTitle(transaction model.Transaction) string {
 		account = transaction.OutAccount.Title + "->" + transaction.InAccount.Title
 	}
 	return account
-}
-
-func (m *Month) getTags(transaction model.Transaction) string {
-	var transactionTags string
-	for _, tag := range transaction.Tag {
-		transactionTags += tag.Title + " "
-	}
-
-	if transactionTags == "" {
-		transactionTags = "Перевод"
-	}
-	return transactionTags
 }

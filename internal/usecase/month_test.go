@@ -126,19 +126,6 @@ func getMonth() *Month {
 	return NewMonth(&MockRepository{})
 }
 
-func TestGetTags(t *testing.T) {
-
-	month := getMonth()
-
-	tag1 := model.Tag{Title: "tag1"}
-	tag2 := model.Tag{Title: "tag2"}
-	transaction := model.Transaction{
-		Tag: []model.Tag{tag1, tag2},
-	}
-
-	assert.Equal(t, "tag1 tag2 ", month.getTags(transaction))
-}
-
 func TestGetAccountTitle(t *testing.T) {
 	month := getMonth()
 

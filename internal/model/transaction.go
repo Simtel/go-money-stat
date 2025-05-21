@@ -50,3 +50,15 @@ func (t Transaction) IsOutcome() bool {
 func (t Transaction) IsTransfer() bool {
 	return t.Income > 0 && t.Outcome > 0
 }
+
+func (t Transaction) GetTagsTitle() string {
+	var transactionTags string
+	for _, tag := range t.Tag {
+		transactionTags += tag.Title + " "
+	}
+
+	if transactionTags == "" {
+		transactionTags = "Перевод"
+	}
+	return transactionTags
+}
