@@ -15,3 +15,31 @@ func TestTransaction_GetTagsTitle(t *testing.T) {
 
 	assert.Equal(t, "tag1 tag2 ", transaction.GetTagsTitle())
 }
+
+func TestTransaction_IsTransfer(t *testing.T) {
+	transaction := Transaction{
+		Income:  1000,
+		Outcome: 1000,
+	}
+	assert.True(t, transaction.IsTransfer())
+	assert.False(t, transaction.IsIncome())
+	assert.False(t, transaction.IsOutcome())
+}
+
+func TestTransaction_IsIncome(t *testing.T) {
+	transaction := Transaction{
+		Income: 1000,
+	}
+	assert.True(t, transaction.IsIncome())
+	assert.False(t, transaction.IsTransfer())
+	assert.False(t, transaction.IsOutcome())
+}
+
+func TestTransaction_IsOutcome(t *testing.T) {
+	transaction := Transaction{
+		Outcome: 1000,
+	}
+	assert.True(t, transaction.IsOutcome())
+	assert.False(t, transaction.IsTransfer())
+	assert.False(t, transaction.IsIncome())
+}
