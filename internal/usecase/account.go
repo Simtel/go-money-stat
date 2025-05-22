@@ -6,7 +6,7 @@ import (
 )
 
 type Accounts struct {
-	repo *accounts.Repository
+	repo accounts.RepositoryInterface
 }
 
 type AccountDto struct {
@@ -22,7 +22,7 @@ type AccountStatDto struct {
 	SummDollar float64
 }
 
-func NewAccounts(repo *accounts.Repository) *Accounts {
+func NewAccounts(repo accounts.RepositoryInterface) *Accounts {
 	return &Accounts{repo: repo}
 }
 

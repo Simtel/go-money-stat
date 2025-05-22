@@ -1,13 +1,11 @@
-package mock_app
+package mocks
 
 import (
-	reflect "reflect"
-
-	gomock "github.com/golang/mock/gomock"
-	gorm "gorm.io/gorm"
+	"github.com/golang/mock/gomock"
+	"gorm.io/gorm"
+	"reflect"
 )
 
-// MockDbInterface is a mock of DbInterface interface.
 type MockDbInterface struct {
 	ctrl     *gomock.Controller
 	recorder *MockDbInterfaceMockRecorder
