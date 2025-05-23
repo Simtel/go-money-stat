@@ -4,7 +4,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
-	"money-stat/internal/app/mocks"
 	"reflect"
 	"testing"
 )
@@ -13,7 +12,7 @@ func TestContainer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockDB := mocks.NewMockDbInterface(ctrl)
+	mockDB := NewMockDbInterface(ctrl)
 	mockDB.EXPECT().GetGorm().Return(nil).AnyTimes()
 	container := NewContainer(mockDB)
 
