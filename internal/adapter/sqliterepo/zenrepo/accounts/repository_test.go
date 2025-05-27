@@ -10,19 +10,19 @@ import (
 )
 
 func TestRepository_GetByYear(t *testing.T) {
-	repository, mock := getRepository(t)
+	repository, mock := getRepository()
 
 	rows := sqlmock.NewRows([]string{"date", "income", "outcome", "amount", "comment", "tags", "created_at"}).
 		AddRow("2021-09-01", 100, 0, 100, "", "", 0).
 		AddRow("2021-09-02", 200, 0, 200, "", "", 0)
 
-	mock.ExpectQuery("^(.+)$").WillReturnRows(rows)
+	mock.ExpectQuery("SELECT (.+) FROM `accounts`").WillReturnRows(rows)
 
 	transactions := repository.GetAll()
 	assert.Equal(t, 2, len(transactions))
 }
 
-func getRepository(t *testing.T) (RepositoryInterface, sqlmock.Sqlmock) {
+func getRepository() (RepositoryInterface, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 
 	if err != nil {

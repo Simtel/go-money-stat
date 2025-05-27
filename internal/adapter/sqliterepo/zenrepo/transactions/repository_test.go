@@ -16,7 +16,9 @@ func TestRepository_GetByYear(t *testing.T) {
 		AddRow("2021-09-01", 100, 0, 100, "", "", 0).
 		AddRow("2021-09-02", 200, 0, 200, "", "", 0)
 
-	mock.ExpectQuery("^(.+)$").WillReturnRows(rows)
+	mock.ExpectQuery("SELECT (.+) FROM `transactions`").
+		WithArgs("2021-01-01", "2021-12-31", 0).
+		WillReturnRows(rows)
 
 	transactions := repository.GetByYear(2021)
 	assert.Equal(t, 2, len(transactions))
