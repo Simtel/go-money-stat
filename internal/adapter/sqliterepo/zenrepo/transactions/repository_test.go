@@ -38,6 +38,20 @@ func TestRepository_GetAll(t *testing.T) {
 	assert.Equal(t, 2, len(transactions))
 }
 
+func TestRepository_GetCurrentMonth(t *testing.T) {
+	repository, mock := getRepository(t)
+
+	rows := sqlmock.NewRows([]string{"date", "income", "outcome", "amount", "comment", "tags", "created_at"}).
+		AddRow("2021-09-01", 100, 0, 100, "", "", 0).
+		AddRow("2021-09-02", 200, 0, 200, "", "", 0)
+
+	mock.ExpectQuery("SELECT (.+) FROM `transactions`").
+		WillReturnRows(rows)
+
+	transactions := repository.GetCurrentMonth()
+	assert.Equal(t, 2, len(transactions))
+}
+
 func getRepository(t *testing.T) (RepositoryInterface, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 
