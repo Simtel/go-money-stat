@@ -88,6 +88,7 @@ func (s *Sync) FullSync() {
 			IncomeAccount:     transaction.IncomeAccount,
 			OutcomeAccount:    transaction.OutcomeAccount,
 			Tag:               tags,
+			Comment:           transaction.Comment,
 		})
 		cntTransactions++
 		p.Increment()

@@ -4,6 +4,7 @@ import (
 	"log"
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"money-stat/internal/model"
+	"sort"
 	"time"
 )
 
@@ -20,6 +21,7 @@ type MonthStatTransactionDto struct {
 	FormatAmount string
 	Account      string
 	CreatedAt    string
+	Comment      string
 }
 
 type Month struct {
@@ -60,6 +62,7 @@ func (m *Month) GetMonthStat(month string) MonthStatDto {
 				transaction.FormatAmount(),
 				m.getAccountTitle(transaction),
 				tCreatedDate.Format("2006-01-02 15:04:05"),
+				transaction.Comment,
 			},
 		)
 		if transaction.Outcome > 0 && transaction.Income == 0 {
@@ -74,6 +77,10 @@ func (m *Month) GetMonthStat(month string) MonthStatDto {
 	monthStat.OutComeSumm = outComeSumm
 	monthStat.InComeSumm = inComeSumm
 	monthStat.Count = cnt
+
+	sort.Slice(monthStat.Transactions, func(i, j int) bool {
+		return monthStat.Transactions[i].CreatedAt < monthStat.Transactions[j].CreatedAt
+	})
 
 	return monthStat
 

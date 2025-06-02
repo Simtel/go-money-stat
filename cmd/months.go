@@ -27,7 +27,7 @@ func RunMonths() *cobra.Command {
 		stat := months.GetMonthStat(month)
 
 		tableData := pterm.TableData{
-			{"Дата", "Категория", "Сумма", "Счет", "Дата создания"},
+			{"Дата", "Категория", "Сумма", "Счет", "Дата создания", "Комментарий"},
 			{" ", " ", " ", " ", " "},
 		}
 
@@ -40,6 +40,7 @@ func RunMonths() *cobra.Command {
 					t.FormatAmount,
 					t.Account,
 					t.CreatedAt,
+					t.Comment,
 				},
 			)
 		}

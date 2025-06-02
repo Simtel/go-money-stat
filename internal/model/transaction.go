@@ -17,6 +17,7 @@ type Transaction struct {
 	Tag               []Tag   `gorm:"many2many:transaction_tags;association_autocreate:false"`
 	InAccount         Account `gorm:"foreignKey:IncomeAccount"`
 	OutAccount        Account `gorm:"foreignKey:OutcomeAccount"`
+	Comment           string
 }
 
 func (t Transaction) FormatAmount() string {
