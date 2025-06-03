@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"money-stat/internal/model"
 	"sort"
@@ -13,16 +14,28 @@ type CapitalDto struct {
 }
 
 type Capital struct {
-	repo transactionsRepo.RepositoryInterface
+	repo        transactionsRepo.RepositoryInterface
+	accountRepo accounts.RepositoryInterface
 }
 
-func NewCapital(repo transactionsRepo.RepositoryInterface) *Capital {
-	return &Capital{repo: repo}
+var checkAccounts = make(map[string]bool)
+
+func NewCapital(repo transactionsRepo.RepositoryInterface, accountRepo accounts.RepositoryInterface) *Capital {
+	return &Capital{repo: repo, accountRepo: accountRepo}
 }
 
 func (c *Capital) GetCapital() []CapitalDto {
 
 	stats := make(map[string]CapitalDto)
+
+	var accountsList = c.accountRepo.GetAll()
+	var accountBalance = make(map[string]model.Account)
+
+	for _, row := range accountsList {
+		if row.StartBalance > 0 {
+			accountBalance[row.Id] = row
+		}
+	}
 
 	var transactions, err = c.repo.GetAll()
 
@@ -42,7 +55,7 @@ func (c *Capital) GetCapital() []CapitalDto {
 			stat = CapitalDto{Month: key}
 		}
 
-		stats[key] = c.countBalance(stat, transaction)
+		stats[key] = c.countBalance(stat, transaction, accountBalance)
 	}
 
 	var valuesSlice []CapitalDto
@@ -57,12 +70,19 @@ func (c *Capital) GetCapital() []CapitalDto {
 	return valuesSlice
 }
 
-func (c *Capital) countBalance(stat CapitalDto, transaction model.Transaction) CapitalDto {
+func (c *Capital) countBalance(stat CapitalDto, transaction model.Transaction, accountBalance map[string]model.Account) CapitalDto {
 	if transaction.Outcome > 0 && transaction.Income == 0 {
 		if !transaction.OutAccount.IsRuble() {
 			stat.Balance = stat.Balance - (transaction.Outcome * transaction.OutAccount.Currency.Rate)
 		} else {
 			stat.Balance = stat.Balance - transaction.Outcome
+		}
+
+		if accountBalance[transaction.OutAccount.Id].StartBalance > 0 {
+			if _, ok := checkAccounts[transaction.OutAccount.Id]; !ok {
+				checkAccounts[transaction.OutAccount.Id] = true
+				stat.Balance = stat.Balance + accountBalance[transaction.OutAccount.Id].StartBalance
+			}
 		}
 
 	}
@@ -73,6 +93,14 @@ func (c *Capital) countBalance(stat CapitalDto, transaction model.Transaction) C
 		} else {
 			stat.Balance = stat.Balance + transaction.Income
 		}
+
+		if accountBalance[transaction.OutAccount.Id].StartBalance > 0 {
+			if _, ok := checkAccounts[transaction.OutAccount.Id]; !ok {
+				checkAccounts[transaction.OutAccount.Id] = true
+				stat.Balance = stat.Balance + accountBalance[transaction.OutAccount.Id].StartBalance
+			}
+		}
 	}
+
 	return stat
 }

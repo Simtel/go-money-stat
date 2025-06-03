@@ -42,7 +42,10 @@ func RunCapital() *cobra.Command {
 			{" ", " "},
 		}
 
-		capital := usecase.NewCapital(app.GetGlobalApp().GetContainer().GetTransactionRepository())
+		capital := usecase.NewCapital(
+			app.GetGlobalApp().GetContainer().GetTransactionRepository(),
+			app.GetGlobalApp().GetContainer().GetAccountRepository(),
+		)
 
 		valuesSlice := capital.GetCapital()
 
