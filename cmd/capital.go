@@ -47,7 +47,11 @@ func RunCapital() *cobra.Command {
 			app.GetGlobalApp().GetContainer().GetAccountRepository(),
 		)
 
-		valuesSlice := capital.GetCapital()
+		valuesSlice, err := capital.GetCapital()
+
+		if err != nil {
+			return err
+		}
 
 		summ := 0.0
 		for _, row := range valuesSlice {
