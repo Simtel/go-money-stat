@@ -18,8 +18,6 @@ type Capital struct {
 	accountRepo accounts.RepositoryInterface
 }
 
-var checkAccounts = make(map[string]bool)
-
 func NewCapital(repo transactionsRepo.RepositoryInterface, accountRepo accounts.RepositoryInterface) *Capital {
 	return &Capital{repo: repo, accountRepo: accountRepo}
 }
