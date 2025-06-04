@@ -29,11 +29,14 @@ func (c *Capital) GetCapital() []CapitalDto {
 	stats := make(map[string]CapitalDto)
 
 	var accountsList = c.accountRepo.GetAll()
-	var accountBalance = make(map[string]model.Account)
 
 	for _, row := range accountsList {
 		if row.StartBalance > 0 {
-			accountBalance[row.Id] = row
+			balance := row.StartBalance
+			if !row.IsRuble() {
+				balance = balance * row.Currency.Rate
+			}
+			stats["2006-01"] = CapitalDto{Month: "2006-01", Balance: balance}
 		}
 	}
 
@@ -55,7 +58,7 @@ func (c *Capital) GetCapital() []CapitalDto {
 			stat = CapitalDto{Month: key}
 		}
 
-		stats[key] = c.countBalance(stat, transaction, accountBalance)
+		stats[key] = c.countBalance(stat, transaction)
 	}
 
 	var valuesSlice []CapitalDto
@@ -70,19 +73,12 @@ func (c *Capital) GetCapital() []CapitalDto {
 	return valuesSlice
 }
 
-func (c *Capital) countBalance(stat CapitalDto, transaction model.Transaction, accountBalance map[string]model.Account) CapitalDto {
+func (c *Capital) countBalance(stat CapitalDto, transaction model.Transaction) CapitalDto {
 	if transaction.Outcome > 0 && transaction.Income == 0 {
 		if !transaction.OutAccount.IsRuble() {
 			stat.Balance = stat.Balance - (transaction.Outcome * transaction.OutAccount.Currency.Rate)
 		} else {
 			stat.Balance = stat.Balance - transaction.Outcome
-		}
-
-		if accountBalance[transaction.OutAccount.Id].StartBalance > 0 {
-			if _, ok := checkAccounts[transaction.OutAccount.Id]; !ok {
-				checkAccounts[transaction.OutAccount.Id] = true
-				stat.Balance = stat.Balance + accountBalance[transaction.OutAccount.Id].StartBalance
-			}
 		}
 
 	}
@@ -92,13 +88,6 @@ func (c *Capital) countBalance(stat CapitalDto, transaction model.Transaction, a
 			stat.Balance = stat.Balance + (transaction.Income * transaction.InAccount.Currency.Rate)
 		} else {
 			stat.Balance = stat.Balance + transaction.Income
-		}
-
-		if accountBalance[transaction.OutAccount.Id].StartBalance > 0 {
-			if _, ok := checkAccounts[transaction.OutAccount.Id]; !ok {
-				checkAccounts[transaction.OutAccount.Id] = true
-				stat.Balance = stat.Balance + accountBalance[transaction.OutAccount.Id].StartBalance
-			}
 		}
 	}
 
