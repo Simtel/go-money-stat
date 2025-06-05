@@ -24,7 +24,10 @@ func RunMonths() *cobra.Command {
 
 		months := usecase.NewMonth(app.GetGlobalApp().GetContainer().GetTransactionRepository())
 
-		stat := months.GetMonthStat(month)
+		stat, err := months.GetMonthStat(month)
+		if err != nil {
+			return fmt.Errorf("failed to get Month stat: %w", err)
+		}
 
 		tableData := pterm.TableData{
 			{"Дата", "Категория", "Сумма", "Счет", "Дата создания", "Комментарий"},
@@ -50,7 +53,7 @@ func RunMonths() *cobra.Command {
 			fmt.Println(errTable)
 		}
 
-		monthDiff := strconv.FormatFloat(stat.InComeSumm-stat.OutComeSumm, 'f', 2, 64)
+		monthDiff := strconv.FormatFloat(stat.IncomeSumm-stat.OutcomeSumm, 'f', 2, 64)
 		if strings.HasPrefix(monthDiff, "-") {
 			monthDiff = pterm.FgRed.Sprint(monthDiff)
 		} else {
@@ -67,8 +70,8 @@ func RunMonths() *cobra.Command {
 			{" ", " ", ""},
 			{
 				strconv.Itoa(stat.Count),
-				strconv.FormatFloat(stat.InComeSumm, 'f', 2, 64),
-				strconv.FormatFloat(stat.OutComeSumm, 'f', 2, 64),
+				strconv.FormatFloat(stat.IncomeSumm, 'f', 2, 64),
+				strconv.FormatFloat(stat.OutcomeSumm, 'f', 2, 64),
 				monthDiff,
 			},
 		}

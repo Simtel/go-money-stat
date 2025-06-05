@@ -73,11 +73,11 @@ func TestGetMonthStat(t *testing.T) {
 			},
 		})
 
-		monthStat := month.GetMonthStat("current")
+		monthStat, _ := month.GetMonthStat("current")
 
 		assert.Equal(t, 3, len(monthStat.Transactions))
-		assert.Equal(t, 150.0, monthStat.OutComeSumm)
-		assert.Equal(t, 200.0, monthStat.InComeSumm)
+		assert.Equal(t, 150.0, monthStat.OutcomeSumm)
+		assert.Equal(t, 200.0, monthStat.IncomeSumm)
 		assert.Equal(t, 3, monthStat.Count)
 	})
 
@@ -112,11 +112,11 @@ func TestGetMonthStat(t *testing.T) {
 			},
 		})
 
-		monthStat := month.GetMonthStat("previous")
+		monthStat, _ := month.GetMonthStat("previous")
 
 		assert.Equal(t, 3, len(monthStat.Transactions))
-		assert.Equal(t, 100.0, monthStat.OutComeSumm)
-		assert.Equal(t, 150.0, monthStat.InComeSumm)
+		assert.Equal(t, 100.0, monthStat.OutcomeSumm)
+		assert.Equal(t, 150.0, monthStat.IncomeSumm)
 		assert.Equal(t, 3, monthStat.Count)
 	})
 }
