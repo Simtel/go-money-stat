@@ -54,6 +54,7 @@ func RunCapital() *cobra.Command {
 		}
 
 		summ := 0.0
+
 		for _, row := range valuesSlice {
 			summ = summ + row.Balance
 			if !strings.HasPrefix(row.Month, strconv.Itoa(selectYear)+"-") {

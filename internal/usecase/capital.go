@@ -35,17 +35,14 @@ func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRep
 func (c *Capital) GetCapital() ([]CapitalDto, error) {
 	monthlyStats := make(map[string]CapitalDto)
 
-	// Инициализируем начальные балансы
 	if err := c.initializeStartingBalances(monthlyStats); err != nil {
 		return nil, fmt.Errorf("failed to initialize starting balances: %w", err)
 	}
 
-	// Обрабатываем транзакции
 	if err := c.processTransactions(monthlyStats); err != nil {
 		return nil, fmt.Errorf("failed to process transactions: %w", err)
 	}
 
-	// Преобразуем в отсортированный слайс
 	return c.convertToSortedSlice(monthlyStats), nil
 }
 
@@ -107,22 +104,13 @@ func (c *Capital) getOrCreateMonthlyStat(monthlyStats map[string]CapitalDto, mon
 
 func (c *Capital) applyTransactionToBalance(stat CapitalDto, transaction model.Transaction) CapitalDto {
 	switch {
-	case c.isOutcomeTransaction(transaction):
-		amount := c.convertToRubles(transaction.Outcome, transaction.OutAccount)
-		stat.Balance -= amount
-	case c.isIncomeTransaction(transaction):
-		amount := c.convertToRubles(transaction.Income, transaction.InAccount)
-		stat.Balance += amount
+	case transaction.IsOutcome():
+		stat.Balance -= c.convertToRubles(transaction.Outcome, transaction.OutAccount)
+	case transaction.IsIncome():
+
+		stat.Balance += c.convertToRubles(transaction.Income, transaction.InAccount)
 	}
 	return stat
-}
-
-func (c *Capital) isOutcomeTransaction(transaction model.Transaction) bool {
-	return transaction.Outcome > 0 && transaction.Income == 0
-}
-
-func (c *Capital) isIncomeTransaction(transaction model.Transaction) bool {
-	return transaction.Income > 0 && transaction.Outcome == 0
 }
 
 func (c *Capital) convertToRubles(amount float64, account model.Account) float64 {
