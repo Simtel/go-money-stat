@@ -134,7 +134,23 @@ func TestGetAccountTitle(t *testing.T) {
 
 	transactionIn := model.Transaction{InAccount: accountIn, Income: 100}
 	transactionOut := model.Transaction{OutAccount: accountOut, Outcome: 100}
+	transactionTransafer := model.Transaction{OutAccount: accountOut, Outcome: 100, InAccount: accountIn, Income: 100}
 
 	assert.Equal(t, "Debit Card", month.getAccountTitle(transactionIn))
 	assert.Equal(t, "Credit Card", month.getAccountTitle(transactionOut))
+	assert.Equal(t, "Credit Card->Debit Card", month.getAccountTitle(transactionTransafer))
+}
+
+func TestConvertTransactionToDto(t *testing.T) {
+	month := getMonth()
+
+	model := model.Transaction{
+		Date:    "01-04-2023",
+		Income:  100,
+		Outcome: 0,
+		Created: 0,
+	}
+
+	dto := month.convertTransactionToDto(model)
+	assert.Equal(t, model.Date, dto.Date)
 }
