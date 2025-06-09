@@ -148,9 +148,13 @@ func TestConvertTransactionToDto(t *testing.T) {
 		Date:    "01-04-2023",
 		Income:  100,
 		Outcome: 0,
-		Created: 0,
+		Created: 1749428856,
+		Comment: "test comment",
 	}
 
 	dto := month.convertTransactionToDto(model)
 	assert.Equal(t, model.Date, dto.Date)
+	assert.Equal(t, "100.00", dto.FormatAmount)
+	assert.Equal(t, "2025-06-09 04:27:36", dto.CreatedAt)
+	assert.Equal(t, model.Comment, dto.Comment)
 }
