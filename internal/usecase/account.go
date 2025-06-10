@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
+	"money-stat/internal/model"
 	"strconv"
 )
 
@@ -43,15 +44,18 @@ func (a *Accounts) GetAccounts() AccountStatDto {
 				account.Currency.ShortTitle,
 			},
 		)
-		if account.IsRuble() {
-			statDto.SummRuble = statDto.SummRuble + account.Balance
-		}
-		if account.IsDollar() {
-			statDto.SummDollar = statDto.SummDollar + account.Balance
-			statDto.RateDollar = account.Currency.Rate
-		}
+		statDto.updateSummByAccountType(account)
 	}
 
 	return statDto
 
+}
+func (a *AccountStatDto) updateSummByAccountType(account model.Account) {
+	if account.IsRuble() {
+		a.SummRuble = a.SummRuble + account.Balance
+	}
+	if account.IsDollar() {
+		a.SummDollar = a.SummDollar + account.Balance
+		a.RateDollar = account.Currency.Rate
+	}
 }
