@@ -47,10 +47,6 @@ func TestNewCapital(t *testing.T) {
 
 	capital := NewCapital(mockTransRepo, mockAccRepo)
 
-	if capital == nil {
-		t.Error("Expected non-nil Capital instance")
-	}
-
 	if capital.transactionRepo != mockTransRepo {
 		t.Error("Transaction repository not properly initialized")
 	}
