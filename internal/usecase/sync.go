@@ -3,19 +3,19 @@ package usecase
 import (
 	"fmt"
 	"github.com/pterm/pterm"
-	"gorm.io/gorm"
 	"log"
+	"money-stat/internal/adapter/db"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"strconv"
 )
 
 type Sync struct {
-	db  *gorm.DB
-	api *zenmoney.Api
+	db  db.DBServiceInterface
+	api zenmoney.ApiInterface
 }
 
-func NewSync(db *gorm.DB, api *zenmoney.Api) *Sync {
+func NewSync(db db.DBServiceInterface, api zenmoney.ApiInterface) *Sync {
 	return &Sync{db: db, api: api}
 }
 

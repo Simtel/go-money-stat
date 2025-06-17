@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"money-stat/internal/adapter/db"
 	app "money-stat/internal/app"
 	"money-stat/internal/services/zenmoney"
 	"money-stat/internal/usecase"
@@ -16,9 +17,9 @@ func RunSync() *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-		db := app.GetGlobalApp().GetContainer().GetDb().GetGorm()
+		gorm := app.GetGlobalApp().GetContainer().GetDb().GetGorm()
 		api := zenmoney.NewApi(&http.Client{})
-		sync := usecase.NewSync(db, api)
+		sync := usecase.NewSync(db.NewDBService(gorm), api)
 
 		sync.FullSync()
 

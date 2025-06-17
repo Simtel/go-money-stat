@@ -15,10 +15,10 @@ type Api struct {
 }
 
 type ApiInterface interface {
-	Diff() (*http.Response, error)
+	Diff() (*Response, error)
 }
 
-func NewApi(client *http.Client) *Api {
+func NewApi(client *http.Client) ApiInterface {
 	return &Api{
 		client: client,
 	}

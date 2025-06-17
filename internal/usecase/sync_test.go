@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"money-stat/internal/adapter/db"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"money-stat/internal/usecase"
@@ -16,18 +17,18 @@ type MockDB struct {
 	mock.Mock
 }
 
-func (m *MockDB) Create(value interface{}) *gorm.DB {
-	args := m.Called(value)
-	return args.Get(0).(*gorm.DB)
-}
-
-func (m *MockDB) Where(query interface{}, args ...interface{}) *gorm.DB {
-	m.Called(query, args[0])
+func (m *MockDB) Create(value interface{}) (tx db.DBServiceInterface) {
+	m.Called(value)
 	return m
 }
 
-func (m *MockDB) Delete(value interface{}) *gorm.DB {
-	m.Called(value)
+func (m *MockDB) Where(query interface{}, conds ...interface{}) (tx db.DBServiceInterface) {
+	m.Called(query, conds)
+	return m
+}
+
+func (m *MockDB) Delete(value interface{}, conds ...interface{}) (tx db.DBServiceInterface) {
+	m.Called(value, conds)
 	return m
 }
 
@@ -122,7 +123,7 @@ func TestSync_ClearTables(t *testing.T) {
 }
 
 func TestNewSync(t *testing.T) {
-	mockDB := &gorm.DB{}
+	mockDB := new(MockDB)
 	mockAPI := &zenmoney.Api{}
 
 	sync := usecase.NewSync(mockDB, mockAPI)
