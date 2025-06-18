@@ -22,11 +22,11 @@ func (s *DBService) Create(value interface{}) (tx DBServiceInterface) {
 }
 
 func (s *DBService) Where(query interface{}, args ...interface{}) (tx DBServiceInterface) {
-	s.db = s.db.Where(query, args...)
+	s.db = s.db.Where(query, args)
 	return s
 }
 
 func (s *DBService) Delete(value interface{}, conds ...interface{}) (tx DBServiceInterface) {
-	s.db = s.db.Delete(value, conds...)
+	s.db = s.db.Delete(value, conds)
 	return s
 }
