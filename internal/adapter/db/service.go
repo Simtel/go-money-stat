@@ -17,16 +17,14 @@ func NewDBService(db *gorm.DB) DBServiceInterface {
 }
 
 func (s *DBService) Create(value interface{}) (tx DBServiceInterface) {
-	s.db = s.db.Create(value)
+	s.db.Create(value)
 	return s
 }
 
 func (s *DBService) Where(query interface{}, args ...interface{}) (tx DBServiceInterface) {
-	s.db = s.db.Where(query, args)
-	return s
+	return NewDBService(s.db.Where(query, args))
 }
 
 func (s *DBService) Delete(value interface{}, conds ...interface{}) (tx DBServiceInterface) {
-	s.db = s.db.Delete(value, conds)
-	return s
+	return NewDBService(s.db.Delete(value, conds))
 }
