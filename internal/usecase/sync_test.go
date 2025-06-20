@@ -18,17 +18,20 @@ type MockDB struct {
 }
 
 func (m *MockDB) Create(value interface{}) (tx db.DBServiceInterface) {
-	//m.Called(value)
+	m.Called(value)
 	return m
 }
 
 func (m *MockDB) Where(query interface{}, args ...interface{}) (tx db.DBServiceInterface) {
-	//m.Called(query, args)
+	m.Called(query, args)
 	return m
 }
 
 func (m *MockDB) Delete(value interface{}, conds ...interface{}) (tx db.DBServiceInterface) {
-	///m.Called(value, conds)
+	if len(conds) > 0 {
+		m.Called(value, conds)
+	}
+	m.Called(value)
 	return m
 }
 
@@ -85,7 +88,7 @@ func TestSync_FullSync(t *testing.T) {
 
 	mockAPI.On("Diff").Return(diffResponse, nil)
 
-	mockDB.On("Where", "`id` != ?", "").Return(mockDB)
+	mockDB.On("Where", "`id` != ?", []interface{}{""}).Return(mockDB)
 	mockDB.On("Delete", &model.Transaction{}).Return(&gorm.DB{})
 	mockDB.On("Delete", &model.Account{}).Return(&gorm.DB{})
 	mockDB.On("Delete", &model.Tag{}).Return(&gorm.DB{})
@@ -100,6 +103,8 @@ func TestSync_FullSync(t *testing.T) {
 
 	sync.FullSync()
 
+	mockAPI.AssertExpectations(t)
+	mockDB.AssertExpectations(t)
 }
 
 func TestSync_ClearTables(t *testing.T) {
@@ -107,7 +112,7 @@ func TestSync_ClearTables(t *testing.T) {
 	mockDB := new(MockDB)
 	mockAPI := new(MockAPI)
 
-	mockDB.On("Where", "`id` != ?", "").Return(mockDB)
+	mockDB.On("Where", "`id` != ?", []interface{}{""}).Return(mockDB)
 	mockDB.On("Delete", &model.Transaction{}).Return(&gorm.DB{})
 	mockDB.On("Delete", &model.Account{}).Return(&gorm.DB{})
 	mockDB.On("Delete", &model.Tag{}).Return(&gorm.DB{})
@@ -116,6 +121,9 @@ func TestSync_ClearTables(t *testing.T) {
 	sync := usecase.NewSync(mockDB, mockAPI)
 
 	sync.ClearTables()
+
+	mockAPI.AssertExpectations(t)
+	mockDB.AssertExpectations(t)
 
 }
 
@@ -126,4 +134,5 @@ func TestNewSync(t *testing.T) {
 	sync := usecase.NewSync(mockDB, mockAPI)
 
 	assert.NotNil(t, sync, "NewSync should return a non-nil Sync instance")
+
 }
