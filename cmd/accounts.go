@@ -24,20 +24,6 @@ func RunAccountList() *cobra.Command {
 
 		stat := accounts.GetAccounts()
 
-		tableData := pterm.TableData{
-			{"Счет", "Баланс", "Валюта"},
-			{" ", " ", " "},
-		}
-
-		for _, account := range stat.Accounts {
-			tableData = append(tableData, []string{account.Account, account.Balance, account.Currency})
-		}
-
-		errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
-		if errTable != nil {
-			fmt.Println(errTable)
-		}
-
 		summData := pterm.TableData{
 			{
 				"Итого в рублях",
@@ -55,6 +41,20 @@ func RunAccountList() *cobra.Command {
 		errSummTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(summData).Render()
 		if errSummTable != nil {
 			fmt.Println(errSummTable)
+		}
+
+		tableData := pterm.TableData{
+			{"Счет", "Баланс", "Валюта"},
+			{" ", " ", " "},
+		}
+
+		for _, account := range stat.Accounts {
+			tableData = append(tableData, []string{account.Account, account.Balance, account.Currency})
+		}
+
+		errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()
+		if errTable != nil {
+			fmt.Println(errTable)
 		}
 
 		return nil
