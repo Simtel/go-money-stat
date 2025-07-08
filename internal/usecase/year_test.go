@@ -73,13 +73,14 @@ func TestYear_GetYearStat(t *testing.T) {
 			name:          "No transactions",
 			transactions:  []model.Transaction{},
 			selectYear:    2023,
-			expectedStats: []usecase.MonthStat{},
+			expectedStats: nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			repo := &mockRepository{}
+			repo.On("GetByYear", tc.selectYear).Return(tc.transactions)
 			year := usecase.NewYear(repo)
 			stats := year.GetYearStat(tc.selectYear)
 
