@@ -15,10 +15,6 @@ func TestNewApi(t *testing.T) {
 		t.Error("NewApi() returned nil")
 	}
 
-	_, ok := api.(ApiInterface)
-	if !ok {
-		t.Error("NewApi() does not return ApiInterface")
-	}
 }
 
 func TestApi_Init(t *testing.T) {
