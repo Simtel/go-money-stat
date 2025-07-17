@@ -76,78 +76,6 @@ func TestCapital_GetCapital_EmptyData(t *testing.T) {
 	}
 }
 
-func TestCapital_GetCapital_StartBalance(t *testing.T) {
-	mockTransRepo := &MockTransactionRepository{
-		transactions: []model.Transaction{},
-	}
-	mockAccRepo := &MockAccountRepository{
-		accounts: []model.Account{
-			{
-				Id:           "1",
-				StartBalance: 1000,
-				Currency: model.Instrument{
-					ShortTitle: "RUB",
-					Rate:       1.0,
-				},
-			},
-		},
-	}
-
-	capital := NewCapital(mockTransRepo, mockAccRepo)
-	result, err := capital.GetCapital()
-
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
-
-	expected := []CapitalDto{
-		{
-			Month:   baseMonth,
-			Balance: 1000,
-		},
-	}
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Expected %v, got %v", expected, result)
-	}
-}
-
-func TestCapital_GetCapital_WithForeignCurrency(t *testing.T) {
-	mockTransRepo := &MockTransactionRepository{
-		transactions: []model.Transaction{},
-	}
-	mockAccRepo := &MockAccountRepository{
-		accounts: []model.Account{
-			{
-				Id:           "1",
-				StartBalance: 100,
-				Currency: model.Instrument{
-					ShortTitle: "USD",
-					Rate:       75.0,
-				},
-			},
-		},
-	}
-
-	capital := NewCapital(mockTransRepo, mockAccRepo)
-	result, err := capital.GetCapital()
-
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
-
-	expected := []CapitalDto{
-		{
-			Month:   baseMonth,
-			Balance: 7500, // 100 USD * 75 RUB/USD
-		},
-	}
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Expected %v, got %v", expected, result)
-	}
-}
-
 func TestCapital_GetCapital_WithTransactions(t *testing.T) {
 	today := time.Now().Format(dateLayout)
 	nextMonth := time.Now().AddDate(0, 1, 0).Format(dateLayout)
@@ -198,10 +126,6 @@ func TestCapital_GetCapital_WithTransactions(t *testing.T) {
 
 	expected := []CapitalDto{
 		{
-			Month:   baseMonth,
-			Balance: 1000,
-		},
-		{
 			Month:   todayMonthKey,
 			Balance: 500,
 		},
@@ -220,9 +144,6 @@ func TestCapital_GetCapital_WithTransactions(t *testing.T) {
 		monthsFound[item.Month] = true
 	}
 
-	if !monthsFound[baseMonth] {
-		t.Errorf("Base month %s not found in results", baseMonth)
-	}
 	if !monthsFound[todayMonthKey] {
 		t.Errorf("Current month %s not found in results", todayMonthKey)
 	}

@@ -35,36 +35,11 @@ func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRep
 func (c *Capital) GetCapital() ([]CapitalDto, error) {
 	monthlyStats := make(map[string]CapitalDto)
 
-	if err := c.initializeStartingBalances(monthlyStats); err != nil {
-		return nil, fmt.Errorf("failed to initialize starting balances: %w", err)
-	}
-
 	if err := c.processTransactions(monthlyStats); err != nil {
 		return nil, fmt.Errorf("failed to process transactions: %w", err)
 	}
 
 	return c.convertToSortedSlice(monthlyStats), nil
-}
-
-func (c *Capital) initializeStartingBalances(monthlyStats map[string]CapitalDto) error {
-	accountsList := c.accountRepo.GetAll()
-
-	totalStartBalance := 0.0
-	for _, account := range accountsList {
-		if account.StartBalance > 0 {
-			balance := c.convertToRubles(account.StartBalance, account)
-			totalStartBalance += balance
-		}
-	}
-
-	if totalStartBalance > 0 {
-		monthlyStats[baseMonth] = CapitalDto{
-			Month:   baseMonth,
-			Balance: totalStartBalance,
-		}
-	}
-
-	return nil
 }
 
 func (c *Capital) processTransactions(monthlyStats map[string]CapitalDto) error {
@@ -109,6 +84,11 @@ func (c *Capital) applyTransactionToBalance(stat CapitalDto, transaction model.T
 	case transaction.IsIncome():
 
 		stat.Balance += c.convertToRubles(transaction.Income, transaction.InAccount)
+	case transaction.IsTransfer():
+		{
+			diff := transaction.Income - transaction.Outcome
+			stat.Balance += c.convertToRubles(diff, transaction.InAccount)
+		}
 	}
 	return stat
 }
