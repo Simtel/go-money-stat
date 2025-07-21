@@ -53,10 +53,7 @@ func RunCapital() *cobra.Command {
 			return err
 		}
 
-		summ := 0.0
-
 		for _, row := range valuesSlice {
-			summ = summ + row.Balance
 			if !strings.HasPrefix(row.Month, strconv.Itoa(selectYear)+"-") {
 				continue
 			}
@@ -64,7 +61,7 @@ func RunCapital() *cobra.Command {
 				tableData,
 				[]string{
 					row.Month,
-					strconv.FormatFloat(summ, 'f', 2, 64),
+					strconv.FormatFloat(row.Balance, 'f', 2, 64),
 				},
 			)
 

@@ -10,19 +10,18 @@ import (
 )
 
 const (
-	dateLayout     = "2006-01-02"
-	monthKeyLayout = "2006-01"
-	baseMonth      = "2006-01"
+	dateLayout = "2006-01-02"
+	baseMonth  = "2006-01"
 )
-
-type CapitalDto struct {
-	Month   string  `json:"month"`
-	Balance float64 `json:"balance"`
-}
 
 type Capital struct {
 	transactionRepo transactionsRepo.RepositoryInterface
 	accountRepo     accounts.RepositoryInterface
+}
+
+type MonthlyBalance struct {
+	Month   string
+	Balance float64
 }
 
 func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRepo accounts.RepositoryInterface) *Capital {
@@ -32,65 +31,77 @@ func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRep
 	}
 }
 
-func (c *Capital) GetCapital() ([]CapitalDto, error) {
-	monthlyStats := make(map[string]CapitalDto)
+func (c *Capital) GetCapital() ([]MonthlyBalance, error) {
 
-	if err := c.processTransactions(monthlyStats); err != nil {
-		return nil, fmt.Errorf("failed to process transactions: %w", err)
-	}
+	transactions, _ := c.transactionRepo.GetAll()
 
-	return c.convertToSortedSlice(monthlyStats), nil
+	return c.calculateMonthlyBalances(transactions), nil
+
 }
 
-func (c *Capital) processTransactions(monthlyStats map[string]CapitalDto) error {
-	transactions, err := c.transactionRepo.GetAll()
-	if err != nil {
-		return fmt.Errorf("failed to fetch transactions: %w", err)
+func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []MonthlyBalance {
+	if len(transactions) == 0 {
+		return []MonthlyBalance{}
 	}
 
-	for _, transaction := range transactions {
-		monthKey, err := c.extractMonthKey(transaction.Date)
+	var validTx []model.Transaction
+	for _, tx := range transactions {
+		if !tx.Deleted {
+			validTx = append(validTx, tx)
+		}
+	}
+
+	if len(validTx) == 0 {
+		return []MonthlyBalance{}
+	}
+
+	sort.Slice(validTx, func(i, j int) bool {
+		dateI, _ := time.Parse(dateLayout, validTx[i].Date)
+		dateJ, _ := time.Parse(dateLayout, validTx[j].Date)
+		return dateI.Before(dateJ)
+	})
+
+	firstDate, err := time.Parse(dateLayout, validTx[0].Date)
+	if err != nil {
+		fmt.Printf("Ошибка парсинга даты: %v\n", err)
+		return []MonthlyBalance{}
+	}
+
+	monthlyData := make(map[string]float64)
+
+	for _, tx := range validTx {
+		txDate, err := time.Parse(dateLayout, tx.Date)
 		if err != nil {
-			return fmt.Errorf("failed to parse transaction date %s: %w", transaction.Date, err)
+			continue
 		}
 
-		stat := c.getOrCreateMonthlyStat(monthlyStats, monthKey)
-		updatedStat := c.applyTransactionToBalance(stat, transaction)
-		monthlyStats[monthKey] = updatedStat
+		monthKey := txDate.Format(baseMonth)
+
+		monthlyData[monthKey] += c.convertToRubles(tx.Income, tx.InAccount) - c.convertToRubles(tx.Outcome, tx.OutAccount)
 	}
 
-	return nil
-}
+	lastDate, _ := time.Parse(dateLayout, validTx[len(validTx)-1].Date)
 
-func (c *Capital) extractMonthKey(dateStr string) (string, error) {
-	transactionTime, err := time.Parse(dateLayout, dateStr)
-	if err != nil {
-		return "", err
+	var result []MonthlyBalance
+	currentBalance := 0.0
+
+	current := time.Date(firstDate.Year(), firstDate.Month(), 1, 0, 0, 0, 0, time.UTC)
+	end := time.Date(lastDate.Year(), lastDate.Month(), 1, 0, 0, 0, 0, time.UTC)
+
+	for current.Before(end.AddDate(0, 1, 0)) {
+		monthKey := current.Format(baseMonth)
+		monthChange := monthlyData[monthKey]
+		currentBalance += monthChange
+
+		result = append(result, MonthlyBalance{
+			Month:   monthKey,
+			Balance: currentBalance,
+		})
+
+		current = current.AddDate(0, 1, 0)
 	}
-	return transactionTime.Format(monthKeyLayout), nil
-}
 
-func (c *Capital) getOrCreateMonthlyStat(monthlyStats map[string]CapitalDto, monthKey string) CapitalDto {
-	if stat, exists := monthlyStats[monthKey]; exists {
-		return stat
-	}
-	return CapitalDto{Month: monthKey, Balance: 0}
-}
-
-func (c *Capital) applyTransactionToBalance(stat CapitalDto, transaction model.Transaction) CapitalDto {
-	switch {
-	case transaction.IsOutcome():
-		stat.Balance -= c.convertToRubles(transaction.Outcome, transaction.OutAccount)
-	case transaction.IsIncome():
-
-		stat.Balance += c.convertToRubles(transaction.Income, transaction.InAccount)
-	case transaction.IsTransfer():
-		{
-			diff := transaction.Income - transaction.Outcome
-			stat.Balance += c.convertToRubles(diff, transaction.InAccount)
-		}
-	}
-	return stat
+	return result
 }
 
 func (c *Capital) convertToRubles(amount float64, account model.Account) float64 {
@@ -98,18 +109,4 @@ func (c *Capital) convertToRubles(amount float64, account model.Account) float64
 		return amount
 	}
 	return amount * account.Currency.Rate
-}
-
-func (c *Capital) convertToSortedSlice(monthlyStats map[string]CapitalDto) []CapitalDto {
-	result := make([]CapitalDto, 0, len(monthlyStats))
-
-	for _, stat := range monthlyStats {
-		result = append(result, stat)
-	}
-
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Month < result[j].Month
-	})
-
-	return result
 }
