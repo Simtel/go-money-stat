@@ -44,12 +44,7 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []M
 		return []MonthlyBalance{}
 	}
 
-	var validTx []model.Transaction
-	for _, tx := range transactions {
-		if !tx.Deleted {
-			validTx = append(validTx, tx)
-		}
-	}
+	validTx := c.getValidTransactions(transactions)
 
 	if len(validTx) == 0 {
 		return []MonthlyBalance{}
@@ -67,18 +62,7 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []M
 		return []MonthlyBalance{}
 	}
 
-	monthlyData := make(map[string]float64)
-
-	for _, tx := range validTx {
-		txDate, err := time.Parse(dateLayout, tx.Date)
-		if err != nil {
-			continue
-		}
-
-		monthKey := txDate.Format(baseMonth)
-
-		monthlyData[monthKey] += c.convertToRubles(tx.Income, tx.InAccount) - c.convertToRubles(tx.Outcome, tx.OutAccount)
-	}
+	monthlyData := c.getMonthlyBalance(validTx)
 
 	lastDate, _ := time.Parse(dateLayout, validTx[len(validTx)-1].Date)
 
@@ -109,4 +93,32 @@ func (c *Capital) convertToRubles(amount float64, account model.Account) float64
 		return amount
 	}
 	return amount * account.Currency.Rate
+}
+
+func (c *Capital) getValidTransactions(transactions []model.Transaction) []model.Transaction {
+	var validTx []model.Transaction
+	for _, tx := range transactions {
+		if !tx.Deleted {
+			validTx = append(validTx, tx)
+		}
+	}
+
+	return validTx
+}
+
+func (c *Capital) getMonthlyBalance(transactions []model.Transaction) map[string]float64 {
+	monthlyData := make(map[string]float64)
+
+	for _, tx := range transactions {
+		txDate, err := time.Parse(dateLayout, tx.Date)
+		if err != nil {
+			continue
+		}
+
+		monthKey := txDate.Format(baseMonth)
+
+		monthlyData[monthKey] += c.convertToRubles(tx.Income, tx.InAccount) - c.convertToRubles(tx.Outcome, tx.OutAccount)
+	}
+
+	return monthlyData
 }
