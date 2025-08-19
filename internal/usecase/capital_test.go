@@ -2,15 +2,13 @@ package usecase
 
 import (
 	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts/mocks"
-	"testing"
-	"time"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-
 	accountsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/accounts/mocks"
 	transactionsRepo "money-stat/internal/adapter/sqliterepo/zenrepo/transactions/mocks"
 	"money-stat/internal/model"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetCapital_EmptyTransactions(t *testing.T) {
@@ -93,7 +91,7 @@ func TestGetCapital_ValidTransactions(t *testing.T) {
 	}
 
 	tx2 := model.Transaction{
-		Id:      2,
+		Id:      "2",
 		Date:    "2023-02-15",
 		Income:  200.0,
 		Outcome: 100.0,
@@ -134,7 +132,7 @@ func TestGetCapital_MultipleMonths(t *testing.T) {
 	mockAccountRepo := mocks.NewMockRepositoryInterface(ctrl)
 
 	tx1 := model.Transaction{
-		Id:      1,
+		Id:      "1",
 		Date:    "2023-01-15",
 		Income:  100.0,
 		Outcome: 50.0,
@@ -154,7 +152,7 @@ func TestGetCapital_MultipleMonths(t *testing.T) {
 	}
 
 	tx2 := model.Transaction{
-		Id:      2,
+		Id:      "2",
 		Date:    "2023-02-15",
 		Income:  200.0,
 		Outcome: 100.0,
@@ -174,7 +172,7 @@ func TestGetCapital_MultipleMonths(t *testing.T) {
 	}
 
 	tx3 := model.Transaction{
-		Id:      3,
+		Id:      "3",
 		Date:    "2023-03-15",
 		Income:  300.0,
 		Outcome: 150.0,
@@ -216,7 +214,7 @@ func TestGetCapital_SingleMonth(t *testing.T) {
 	mockAccountRepo := mocks.NewMockRepositoryInterface(ctrl)
 
 	tx1 := model.Transaction{
-		Id:      1,
+		Id:      "1",
 		Date:    "2023-01-15",
 		Income:  100.0,
 		Outcome: 50.0,
@@ -256,7 +254,7 @@ func TestGetCapital_NegativeBalance(t *testing.T) {
 	mockAccountRepo := mocks.NewMockRepositoryInterface(ctrl)
 
 	tx1 := model.Transaction{
-		Id:      1,
+		Id:      "1",
 		Date:    "2023-01-15",
 		Income:  50.0,
 		Outcome: 100.0,
