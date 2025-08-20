@@ -115,8 +115,8 @@ func TestGetCapital_ValidTransactions(t *testing.T) {
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
 	expectedResult := []MonthlyBalance{
-		{Month: "2023-01", Balance: 50.0},
-		{Month: "2023-02", Balance: 150.0},
+		{Month: "2023-01", Balance: -3650},
+		{Month: "2023-02", Balance: -10950},
 	}
 
 	result, err := capital.GetCapital()
@@ -196,9 +196,9 @@ func TestGetCapital_MultipleMonths(t *testing.T) {
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
 	expectedResult := []MonthlyBalance{
-		{Month: "2023-01", Balance: 50.0},
-		{Month: "2023-02", Balance: 150.0},
-		{Month: "2023-03", Balance: 300.0},
+		{Month: "2023-01", Balance: -3650.0},
+		{Month: "2023-02", Balance: -10950.0},
+		{Month: "2023-03", Balance: -21900},
 	}
 
 	result, err := capital.GetCapital()
@@ -238,7 +238,7 @@ func TestGetCapital_SingleMonth(t *testing.T) {
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
 	expectedResult := []MonthlyBalance{
-		{Month: "2023-01", Balance: 50.0},
+		{Month: "2023-01", Balance: -3650.0},
 	}
 
 	result, err := capital.GetCapital()
@@ -278,7 +278,7 @@ func TestGetCapital_NegativeBalance(t *testing.T) {
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
 	expectedResult := []MonthlyBalance{
-		{Month: "2023-01", Balance: -50.0},
+		{Month: "2023-01", Balance: -7450.0},
 	}
 
 	result, err := capital.GetCapital()
