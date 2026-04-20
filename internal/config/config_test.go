@@ -26,12 +26,22 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// Очищаем окружение перед тестом
+			_ = os.Unsetenv("ZENMONEY_TOKEN")
+
 			for key, value := range tc.env {
 				err := os.Setenv(key, value)
 				if err != nil {
-					panic(err)
+					t.Fatalf("Failed to set env: %v", err)
 				}
 			}
+
+			// Очищаем окружение после теста
+			t.Cleanup(func() {
+				for key := range tc.env {
+					_ = os.Unsetenv(key)
+				}
+			})
 
 			config := New()
 

@@ -2,12 +2,13 @@ package usecase
 
 import (
 	"fmt"
-	"github.com/pterm/pterm"
 	"log"
 	"money-stat/internal/adapter/db"
 	"money-stat/internal/model"
 	"money-stat/internal/services/zenmoney"
 	"strconv"
+
+	"github.com/pterm/pterm"
 )
 
 type Sync struct {
@@ -20,12 +21,13 @@ func NewSync(db db.DBServiceInterface, api zenmoney.ApiInterface) *Sync {
 }
 
 func (s *Sync) FullSync() {
-	loadSpin := s.startSpinner("Загрузка данных")
 
+	clearSpin := s.startSpinner("Очистка таблиц")
 	s.ClearTables()
+	s.stopSpinner(clearSpin, "Очистка завершена")
 
+	loadSpin := s.startSpinner("Загрузка данных")
 	diff, _ := s.api.Diff()
-
 	s.stopSpinner(loadSpin, "Загрузка завершена")
 
 	tagsSpin := s.startSpinner("Сохранение тэгов")
