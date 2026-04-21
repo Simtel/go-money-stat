@@ -7,3 +7,4 @@ pkg/
 /money-stat
 zenmoney.db
 /.http/
+/vendor/

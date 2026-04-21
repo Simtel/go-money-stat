@@ -94,7 +94,7 @@ func TestApi_Diff_NotImplemented(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
-	expectedBaseURL := "https://api.zenmoney.app/v8/diff/"
+	expectedBaseURL := "https://api.zenmoney.ru/v8/diff/"
 	if BASE_URL != expectedBaseURL {
 		t.Errorf("Expected BASE_URL to be '%s', got '%s'", expectedBaseURL, BASE_URL)
 	}
