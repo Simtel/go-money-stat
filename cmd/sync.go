@@ -7,6 +7,7 @@ import (
 	"money-stat/internal/services/zenmoney"
 	"money-stat/internal/usecase"
 	"net/http"
+	"time"
 )
 
 func RunSync() *cobra.Command {
@@ -18,7 +19,8 @@ func RunSync() *cobra.Command {
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
 		gorm := app.GetGlobalApp().GetContainer().GetDb().GetGorm()
-		api := zenmoney.NewApi(&http.Client{})
+		client := &http.Client{Timeout: 30 * time.Second}
+		api := zenmoney.NewApi(client)
 		sync := usecase.NewSync(db.NewDBService(gorm), api)
 
 		sync.FullSync()

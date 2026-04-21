@@ -43,10 +43,8 @@ func (api *Api) Diff() (*Response, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
 
-	client := &http.Client{}
-
 	log.Printf("[Diff] Отправка запроса:")
-	resp, errorResp := client.Do(req)
+	resp, errorResp := api.client.Do(req)
 	log.Printf("[Diff] Отправка HTTP запроса заняло: %v", time.Since(startTime))
 
 	if errorResp != nil {

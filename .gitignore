@@ -6,3 +6,4 @@ pkg/
 /.env
 /money-stat
 zenmoney.db
+/.http/

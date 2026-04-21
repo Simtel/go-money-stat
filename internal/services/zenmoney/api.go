@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var BASE_URL string = "https://api.zenmoney.app/v8/diff/"
+var BASE_URL string = "https://api.zenmoney.ru/v8/diff/"
 
 var Token string
 
