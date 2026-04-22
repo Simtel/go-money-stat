@@ -10,17 +10,16 @@ import (
 	"strconv"
 )
 
-func RunAccountList() *cobra.Command {
+func RunAccountList(app *app.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "accounts",
 		Short: "Показать счета с балансом и валютой",
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-
 		log.Println("Show accounts called")
 
-		accounts := usecase.NewAccounts(app.GetGlobalApp().GetContainer().GetAccountRepository())
+		accounts := usecase.NewAccounts(app.GetContainer().GetAccountRepository())
 
 		stat := accounts.GetAccounts()
 

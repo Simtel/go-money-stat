@@ -10,15 +10,14 @@ import (
 	"time"
 )
 
-func RunSync() *cobra.Command {
+func RunSync(app *app.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sync",
 		Short: "Синхронизировать данные",
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-
-		gorm := app.GetGlobalApp().GetContainer().GetDb().GetGorm()
+		gorm := app.GetContainer().GetDb().GetGorm()
 		client := &http.Client{Timeout: 30 * time.Second}
 		api := zenmoney.NewApi(client)
 		sync := usecase.NewSync(db.NewDBService(gorm), api)

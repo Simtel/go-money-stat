@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func RunMonths() *cobra.Command {
+func RunMonths(app *app.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:       "months",
 		Short:     "Показать транзакции за месяц (текущий(current), прошлый(previous))",
@@ -19,10 +19,9 @@ func RunMonths() *cobra.Command {
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-
 		month := args[0]
 
-		months := usecase.NewMonth(app.GetGlobalApp().GetContainer().GetTransactionRepository())
+		months := usecase.NewMonth(app.GetContainer().GetTransactionRepository())
 
 		stat, err := months.GetMonthStat(month)
 		if err != nil {

@@ -2,15 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/golang/mock/gomock"
+	"money-stat/internal/app"
 	"testing"
 )
 
 func TestRunYear(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	app := app.NewApp(app.NewContainer(app.NewDB()))
 
-	cmd := RunYear()
+	cmd := RunYear(app)
 
 	// Тестирование пограничных случаев
 	testCases := []struct {

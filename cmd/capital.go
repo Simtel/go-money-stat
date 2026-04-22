@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func RunCapital() *cobra.Command {
+func RunCapital(app *app.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "capital",
 		Short: "Показать капитал за указанный год",
@@ -34,7 +34,6 @@ func RunCapital() *cobra.Command {
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-
 		selectYear, _ := strconv.Atoi(args[0])
 
 		tableData := pterm.TableData{
@@ -43,8 +42,8 @@ func RunCapital() *cobra.Command {
 		}
 
 		capital := usecase.NewCapital(
-			app.GetGlobalApp().GetContainer().GetTransactionRepository(),
-			app.GetGlobalApp().GetContainer().GetAccountRepository(),
+			app.GetContainer().GetTransactionRepository(),
+			app.GetContainer().GetAccountRepository(),
 		)
 
 		valuesSlice, err := capital.GetCapital()

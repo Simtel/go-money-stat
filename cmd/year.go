@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func RunYear() *cobra.Command {
+func RunYear(app *app.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "year",
 		Short: "Показать таблицу доходов и расходов  за указанный год",
@@ -33,10 +33,9 @@ func RunYear() *cobra.Command {
 	}
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-
 		selectYear, _ := strconv.Atoi(args[0])
 
-		year := usecase.NewYear(app.GetGlobalApp().GetContainer().GetTransactionRepository())
+		year := usecase.NewYear(app.GetContainer().GetTransactionRepository())
 
 		valuesSlice := year.GetYearStat(selectYear)
 
