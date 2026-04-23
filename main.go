@@ -6,7 +6,11 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 
-	"money-stat/cmd"
+	"money-stat/cmd/accounts"
+	"money-stat/cmd/capital"
+	"money-stat/cmd/months"
+	"money-stat/cmd/sync"
+	"money-stat/cmd/year"
 	app2 "money-stat/internal/app"
 )
 
@@ -25,11 +29,11 @@ func main() {
 	rootCmd := &cobra.Command{}
 
 	rootCmd.AddCommand(
-		cmd.RunAccountList(app),
-		cmd.RunMonths(app),
-		cmd.RunYear(app),
-		cmd.RunSync(app),
-		cmd.RunCapital(app),
+		accounts.Run(app),
+		months.Run(app),
+		year.Run(app),
+		sync.Run(app),
+		capital.Run(app),
 	)
 
 	if err := rootCmd.Execute(); err != nil {

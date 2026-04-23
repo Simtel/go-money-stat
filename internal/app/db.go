@@ -1,9 +1,10 @@
 package app
 
 import (
+	"money-stat/internal/dbinit"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"money-stat/internal/model"
 )
 
 type DB struct {
@@ -20,9 +21,9 @@ func NewDB() DbInterface {
 		panic("failed to connect database")
 	}
 
-	errMigrate := db.AutoMigrate(&model.Transaction{}, &model.Tag{}, &model.Instrument{}, &model.Account{})
-	if errMigrate != nil {
-		panic(errMigrate)
+	// Инициализация базы данных через отдельный пакет
+	if err := dbinit.InitializeDB(db); err != nil {
+		panic(err)
 	}
 	return &DB{db: db}
 }
