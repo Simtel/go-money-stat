@@ -110,7 +110,7 @@ func TestGetCapital_ValidTransactions(t *testing.T) {
 		Deleted: false,
 	}
 
-	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{tx1, tx2}, nil).Times(2)
+	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{tx1, tx2}, nil).Times(1)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
