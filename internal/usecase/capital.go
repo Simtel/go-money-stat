@@ -17,6 +17,9 @@ const (
 type Capital struct {
 	transactionRepo transactionsRepo.RepositoryInterface
 	accountRepo     accounts.RepositoryInterface
+	cachedResult []MonthlyBalance
+	cacheTime    time.Time
+	cacheTTL     time.Duration
 }
 
 type MonthlyBalance struct {
@@ -28,15 +31,25 @@ func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRep
 	return &Capital{
 		transactionRepo: transactionRepo,
 		accountRepo:     accountRepo,
+		cacheTTL: 5 * time.Minute,
 	}
 }
 
 func (c *Capital) GetCapital() ([]MonthlyBalance, error) {
+	// Проверяем актуальность кэша
+	if c.cachedResult != nil && time.Since(c.cacheTime) < c.cacheTTL {
+		return c.cachedResult, nil
+	}
 
 	transactions, _ := c.transactionRepo.GetAll()
+	result := c.calculateMonthlyBalances(transactions)
 
-	return c.calculateMonthlyBalances(transactions), nil
+	// Обновляем кэш
+	c.cachedResult = make([]MonthlyBalance, len(result))
+	copy(c.cachedResult, result)
+	c.cacheTime = time.Now()
 
+	return result, nil
 }
 
 func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []MonthlyBalance {

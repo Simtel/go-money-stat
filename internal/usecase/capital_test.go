@@ -110,7 +110,7 @@ func TestGetCapital_ValidTransactions(t *testing.T) {
 		Deleted: false,
 	}
 
-	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{tx1, tx2}, nil)
+	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{tx1, tx2}, nil).Times(2)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -119,7 +119,13 @@ func TestGetCapital_ValidTransactions(t *testing.T) {
 		{Month: "2023-02", Balance: -10950},
 	}
 
+	// Первый вызов - должен загрузить данные
 	result, err := capital.GetCapital()
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
+
+	// Второй вызов - должен вернуть кэш
+	result, err = capital.GetCapital()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedResult, result)
 }
