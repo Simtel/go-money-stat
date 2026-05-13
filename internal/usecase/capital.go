@@ -16,10 +16,13 @@ const (
 
 type Capital struct {
 	transactionRepo transactionsRepo.RepositoryInterface
-	accountRepo     accounts.RepositoryInterface
+
+	accountRepo accounts.RepositoryInterface
+
 	cachedResult []MonthlyBalance
-	cacheTime    time.Time
-	cacheTTL     time.Duration
+
+	cacheTime time.Time
+	cacheTTL  time.Duration
 }
 
 type MonthlyBalance struct {
