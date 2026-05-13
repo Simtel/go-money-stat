@@ -7,5 +7,5 @@ import (
 
 // InitializeDB инициализирует базу данных, выполняя миграции
 func InitializeDB(db *gorm.DB) error {
-	return db.AutoMigrate(&model.Transaction{}, &model.Tag{}, &model.Instrument{}, &model.Account{})
+	return db.AutoMigrate(&model.Transaction{}, &model.Tag{}, &model.Instrument{}, &model.Account{}, &model.SyncState{})
 }

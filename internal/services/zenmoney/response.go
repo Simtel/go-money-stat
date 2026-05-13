@@ -1,10 +1,12 @@
 package zenmoney
 
 type Response struct {
-	Account     []Account     `json:"account"`
-	Instrument  []Instrument  `json:"instrument"`
-	Transaction []Transaction `json:"transaction"`
-	Tag         []Tag         `json:"tag"`
+	Account                []Account     `json:"account"`
+	Instrument             []Instrument  `json:"instrument"`
+	Transaction            []Transaction `json:"transaction"`
+	Tag                    []Tag         `json:"tag"`
+	ServerTimestamp        int64         `json:"serverTimestamp"`
+	CurrentClientTimestamp int64         `json:"currentClientTimestamp"`
 }
 
 func (r *Response) GetIndexedTags() map[string]Tag {

@@ -1,9 +1,14 @@
 package zenmoney
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"io"
+	"log"
 	"money-stat/internal/config"
 	"net/http"
+	"time"
 )
 
 var BASE_URL string = "https://api.zenmoney.ru/v8/diff/"
@@ -16,6 +21,7 @@ type Api struct {
 
 type ApiInterface interface {
 	Diff() (*Response, error)
+	DiffSince(timestamp int64) (*Response, error)
 }
 
 func NewApi(client *http.Client) ApiInterface {
@@ -31,4 +37,64 @@ func (request *Api) Init() (string, error) {
 		return "", errors.New("you need to set ZENMONEY TOKEN environment variable")
 	}
 	return token, nil
+}
+
+// DiffSince запрашивает изменения с указанного timestamp
+func (api *Api) DiffSince(timestamp int64) (*Response, error) {
+	startTime := time.Now()
+	log.Printf("[DiffSince] Начало запроса с timestamp=%d", timestamp)
+
+	token, err := api.Init()
+	if err != nil {
+		log.Printf("[DiffSince] Init заняло: %v, ошибка: %v", time.Since(startTime), err)
+		return nil, err
+	}
+	log.Printf("[DiffSince] Init заняло: %v", time.Since(startTime))
+
+	bearer := "Bearer " + token
+
+	// Отправляем timestamp последней синхронизации
+	d := Diff{CurrentClientTimestamp: timestamp, ServerTimestamp: 0}
+	diff, _ := json.Marshal(d)
+
+	req, errorReq := http.NewRequest("POST", BASE_URL, bytes.NewReader(diff))
+	if errorReq != nil {
+		log.Printf("[DiffSince] Создание запроса заняло: %v, ошибка: %v", time.Since(startTime), errorReq)
+		return nil, errorReq
+	}
+	log.Printf("[DiffSince] Создание запроса заняло: %v", time.Since(startTime))
+
+	req.Header.Add("Authorization", bearer)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+
+	log.Printf("[DiffSince] Отправка HTTP запроса:")
+	resp, errorResp := api.client.Do(req)
+	log.Printf("[DiffSince] Отправка HTTP запроса заняло: %v", time.Since(startTime))
+
+	if errorResp != nil {
+		log.Printf("[DiffSince] Ошибка выполнения запроса: %v, всего заняло: %v", errorResp, time.Since(startTime))
+		return nil, errorResp
+	}
+
+	if resp.StatusCode != 200 {
+		log.Printf("[DiffSince] Нестатус 200: %v, всего заняло: %v", resp.StatusCode, time.Since(startTime))
+		body, _ := io.ReadAll(resp.Body)
+		log.Printf("[DiffSince] Тело ошибки: %s", string(body))
+		log.Printf("[DiffSince] Чтение тела ошибки заняло: %v", time.Since(startTime))
+		return nil, errors.New(resp.Status)
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	log.Printf("[DiffSince] Чтение ответа заняло: %v", time.Since(startTime))
+
+	var result Response
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		log.Printf("[DiffSince] Ошибка парсинга JSON: %v, всего заняло: %v", err, time.Since(startTime))
+		return nil, err
+	}
+
+	log.Printf("[DiffSince] Запрос DiffSince завершен, всего заняло: %v. Получено транзакций: %d", time.Since(startTime), len(result.Transaction))
+	return &result, nil
 }
