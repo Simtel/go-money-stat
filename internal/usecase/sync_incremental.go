@@ -113,7 +113,7 @@ func (s *Sync) syncData(lastTimestamp int64, isFull bool) {
 		cntTransactions++
 		p.Increment()
 	}
-	p.Stop()
+	_, _ = p.Stop()
 
 	fmt.Println("Загружено транзакций:", cntTransactions)
 	fmt.Println("Загружено тегов:", cntTags)
@@ -178,7 +178,7 @@ func (s *Sync) upsertTransaction(transaction *zenmoney.Transaction) {
 		})
 		// Обновляем связи с тегами только если есть теги
 		if len(tags) > 0 {
-			s.db.Association("Tag").Replace(tags)
+			_ = s.db.Association("Tag").Replace(tags)
 		}
 	} else {
 		// Транзакция не существует, создаем
