@@ -34,7 +34,7 @@ func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRep
 	return &Capital{
 		transactionRepo: transactionRepo,
 		accountRepo:     accountRepo,
-		cacheTTL: 5 * time.Minute,
+		cacheTTL:        5 * time.Minute,
 	}
 }
 

@@ -12,9 +12,9 @@ type Transaction struct {
 	Outcome           float64
 	Date              string
 	Deleted           bool
-	IncomeAccount  string `gorm:"column:income_account"`
-	OutcomeAccount string `gorm:"column:outcome_account"`
-	TagIds         string `gorm:"column:tag_ids"`
+	IncomeAccount     string `gorm:"column:income_account"`
+	OutcomeAccount    string `gorm:"column:outcome_account"`
+	TagIds            string `gorm:"column:tag_ids"`
 	Comment           string
 }
 
