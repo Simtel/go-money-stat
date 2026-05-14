@@ -60,7 +60,13 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []M
 		return []MonthlyBalance{}
 	}
 
-	validTx := c.getValidTransactions(transactions)
+	// Фильтруем удалённые транзакции
+	var validTx []model.Transaction
+	for _, tx := range transactions {
+		if !tx.Deleted {
+			validTx = append(validTx, tx)
+		}
+	}
 
 	if len(validTx) == 0 {
 		return []MonthlyBalance{}
@@ -104,24 +110,6 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []M
 	return result
 }
 
-func (c *Capital) convertToRubles(amount float64, account model.Account) float64 {
-	if account.IsRuble() {
-		return amount
-	}
-	return amount * account.Currency.Rate
-}
-
-func (c *Capital) getValidTransactions(transactions []model.Transaction) []model.Transaction {
-	var validTx []model.Transaction
-	for _, tx := range transactions {
-		if !tx.Deleted {
-			validTx = append(validTx, tx)
-		}
-	}
-
-	return validTx
-}
-
 func (c *Capital) getMonthlyBalance(transactions []model.Transaction) map[string]float64 {
 	monthlyData := make(map[string]float64)
 
@@ -133,7 +121,8 @@ func (c *Capital) getMonthlyBalance(transactions []model.Transaction) map[string
 
 		monthKey := txDate.Format(baseMonth)
 
-		monthlyData[monthKey] += c.convertToRubles(tx.Income, tx.InAccount) - c.convertToRubles(tx.Outcome, tx.OutAccount)
+		// Простая сумма без конвертации валют (так как нет данных о курсах)
+		monthlyData[monthKey] += tx.Income - tx.Outcome
 	}
 
 	return monthlyData

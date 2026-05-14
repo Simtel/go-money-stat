@@ -110,11 +110,11 @@ func (m *Month) sortTransactionsByCreatedAt(transactions []MonthStatTransactionD
 func (m *Month) getAccountTitle(transaction model.Transaction) string {
 	switch {
 	case transaction.IsTransfer():
-		return fmt.Sprintf("%s->%s", transaction.OutAccount.Title, transaction.InAccount.Title)
+		return fmt.Sprintf("%s->%s", transaction.OutcomeAccount, transaction.IncomeAccount)
 	case transaction.IsIncome():
-		return transaction.InAccount.Title
+		return transaction.IncomeAccount
 	case transaction.IsOutcome():
-		return transaction.OutAccount.Title
+		return transaction.OutcomeAccount
 	default:
 		return ""
 	}

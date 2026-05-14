@@ -12,11 +12,9 @@ type Transaction struct {
 	Outcome           float64
 	Date              string
 	Deleted           bool
-	IncomeAccount     string
-	OutcomeAccount    string
-	Tag               []Tag   `gorm:"many2many:transaction_tags;association_autocreate:false"`
-	InAccount         Account `gorm:"foreignKey:IncomeAccount"`
-	OutAccount        Account `gorm:"foreignKey:OutcomeAccount"`
+	IncomeAccount  string `gorm:"column:income_account"`
+	OutcomeAccount string `gorm:"column:outcome_account"`
+	TagIds         string `gorm:"column:tag_ids"`
 	Comment           string
 }
 
@@ -53,13 +51,8 @@ func (t Transaction) IsTransfer() bool {
 }
 
 func (t Transaction) GetTagsTitle() string {
-	var transactionTags string
-	for _, tag := range t.Tag {
-		transactionTags += tag.Title + " "
+	if t.TagIds == "" {
+		return "Перевод"
 	}
-
-	if transactionTags == "" {
-		transactionTags = "Перевод"
-	}
-	return transactionTags
+	return t.TagIds
 }

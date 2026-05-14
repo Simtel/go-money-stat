@@ -29,6 +29,7 @@ func (api *Api) Diff() (*Response, error) {
 
 	bearer := "Bearer " + token
 
+	// API ZenMoney ожидает timestamp в секундах
 	d := Diff{time.Now().Unix(), 0}
 	diff, _ := json.Marshal(d)
 

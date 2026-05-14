@@ -21,6 +21,11 @@ func NewSync(db db.DBServiceInterface, api zenmoney.ApiInterface) *Sync {
 	return &Sync{db: db, api: api}
 }
 
+// GetDB возвращает экземпляр DBServiceInterface
+func (s *Sync) GetDB() db.DBServiceInterface {
+	return s.db
+}
+
 // FullSync выполняет полную синхронизацию с очисткой всех данных
 func (s *Sync) FullSync() {
 	clearSpin := s.startSpinner("Очистка таблиц")
@@ -68,32 +73,37 @@ func (s *Sync) syncData(lastTimestamp int64, isFull bool) {
 	}
 	s.stopSpinner(loadSpin, "Загрузка завершена")
 
-	// Сохраняем теги
-	tagsSpin := s.startSpinner("Сохранение тегов")
-	var cntTags int
-	for _, tag := range diff.Tag {
-		s.db.Create(&model.Tag{
-			Id:    tag.Id,
-			Title: tag.Title,
-		})
-		cntTags++
+	// Конвертируем теги из zenmoney.Tag в model.Tag
+	tags := make([]model.Tag, len(diff.Tag))
+	for i, t := range diff.Tag {
+		tags[i] = model.Tag{Id: t.Id}
 	}
-	s.stopSpinner(tagsSpin, fmt.Sprintf("Сохранено тегов: %d", cntTags))
+
+	// Конвертируем валюты из zenmoney.Instrument в model.Instrument
+	instruments := make([]model.Instrument, len(diff.Instrument))
+	for i, inst := range diff.Instrument {
+		instruments[i] = model.Instrument{
+			Id:         inst.Id,
+			Title:      inst.Title,
+			ShortTitle: inst.ShortTitle,
+			Symbol:     inst.Symbol,
+			Rate:       inst.Rate,
+		}
+	}
+
+	// Сохраняем теги
+	cntTags := 0
+	if err := s.saveTags(tags); err != nil {
+		log.Printf("Ошибка сохранения тегов: %v", err)
+	}
+	cntTags = len(tags)
 
 	// Сохраняем валюты
-	intSpinner := s.startSpinner("Сохранение валют")
-	var cntInstruments int
-	for _, inc := range diff.Instrument {
-		s.db.Create(&model.Instrument{
-			Id:         inc.Id,
-			Title:      inc.Title,
-			ShortTitle: inc.ShortTitle,
-			Symbol:     inc.Symbol,
-			Rate:       inc.Rate,
-		})
-		cntInstruments++
+	cntInstruments := 0
+	if err := s.saveInstruments(instruments); err != nil {
+		log.Printf("Ошибка сохранения валют: %v", err)
 	}
-	s.stopSpinner(intSpinner, fmt.Sprintf("Сохранено валют: %d", cntInstruments))
+	cntInstruments = len(instruments)
 
 	// Сохраняем счета с использованием Upsert
 	accSpinner := s.startSpinner("Сохранение счетов")
@@ -119,11 +129,36 @@ func (s *Sync) syncData(lastTimestamp int64, isFull bool) {
 	fmt.Println("Загружено тегов:", cntTags)
 	fmt.Println("Загружено счетов:", cntAccounts)
 	fmt.Println("Загружено валют:", cntInstruments)
+	log.Printf("ServerTimestamp из API: %d", diff.ServerTimestamp)
 
 	// Обновляем состояние синхронизации
 	if diff.ServerTimestamp > 0 {
 		s.updateSyncState(diff.ServerTimestamp)
+	} else {
+		log.Printf("ServerTimestamp равен 0, не сохраняем sync_state")
 	}
+}
+
+// saveTags сохраняет теги
+func (s *Sync) saveTags(tags []model.Tag) error {
+	for i := range tags {
+		tx := s.db.Save(&tags[i])
+		if tx.GetDB().Error != nil {
+			return fmt.Errorf("ошибка сохранения тега %s: %w", tags[i].Id, tx.GetDB().Error)
+		}
+	}
+	return nil
+}
+
+// saveInstruments сохраняет валюты
+func (s *Sync) saveInstruments(instruments []model.Instrument) error {
+	for i := range instruments {
+		tx := s.db.Save(&instruments[i])
+		if tx.GetDB().Error != nil {
+			return fmt.Errorf("ошибка сохранения валюты %s: %w", instruments[i].Id, tx.GetDB().Error)
+		}
+	}
+	return nil
 }
 
 // upsertAccount создает или обновляет счет
@@ -156,75 +191,59 @@ func (s *Sync) upsertTransaction(transaction *zenmoney.Transaction) {
 	var existing model.Transaction
 	result := s.db.Where("id = ?", transaction.Id).First(&existing)
 
-	var tags []model.Tag
-	for _, tagId := range transaction.Tag {
-		tags = append(tags, model.Tag{Id: tagId})
+	// Преобразуем теги в строку через запятую
+	var tagIds string
+	for i, tagId := range transaction.Tag {
+		if i > 0 {
+			tagIds += ","
+		}
+		tagIds += fmt.Sprintf("%d", tagId)
+	}
+
+	// Создаем объект транзакции без ассоциаций
+	txn := model.Transaction{
+		Id:                transaction.Id,
+		Changed:           transaction.Changed,
+		Created:           transaction.Created,
+		IncomeInstrument:  transaction.IncomeInstrument,
+		Income:            transaction.Income,
+		OutcomeInstrument: transaction.OutcomeInstrument,
+		Outcome:           transaction.Outcome,
+		Date:              transaction.Date,
+		Deleted:           transaction.Deleted,
+		IncomeAccount:     transaction.IncomeAccount,
+		OutcomeAccount:    transaction.OutcomeAccount,
+		TagIds:            tagIds,
+		Comment:           transaction.Comment,
 	}
 
 	if result.GetDB().Error == nil {
-		// Транзакция существует, обновляем
-		s.db.Model(&existing).Updates(map[string]interface{}{
-			"Changed":           transaction.Changed,
-			"Created":           transaction.Created,
-			"IncomeInstrument":  transaction.IncomeInstrument,
-			"Income":            transaction.Income,
-			"OutcomeInstrument": transaction.OutcomeInstrument,
-			"Outcome":           transaction.Outcome,
-			"Date":              transaction.Date,
-			"Deleted":           transaction.Deleted,
-			"IncomeAccount":     transaction.IncomeAccount,
-			"OutcomeAccount":    transaction.OutcomeAccount,
-			"Comment":           transaction.Comment,
-		})
-		// Обновляем связи с тегами только если есть теги
-		if len(tags) > 0 {
-			_ = s.db.Association("Tag").Replace(tags)
-		}
+		// Транзакция существует, обновляем через Save
+		s.db.Save(&txn)
 	} else {
 		// Транзакция не существует, создаем
-		s.db.Create(&model.Transaction{
-			Id:                transaction.Id,
-			Changed:           transaction.Changed,
-			Created:           transaction.Created,
-			IncomeInstrument:  transaction.IncomeInstrument,
-			Income:            transaction.Income,
-			OutcomeInstrument: transaction.OutcomeInstrument,
-			Outcome:           transaction.Outcome,
-			Date:              transaction.Date,
-			Deleted:           transaction.Deleted,
-			IncomeAccount:     transaction.IncomeAccount,
-			OutcomeAccount:    transaction.OutcomeAccount,
-			Tag:               tags,
-			Comment:           transaction.Comment,
-		})
+		s.db.Create(&txn)
 	}
 }
 
 // updateSyncState обновляет состояние последней синхронизации
 func (s *Sync) updateSyncState(serverTimestamp int64) {
-	var syncState model.SyncState
-	result := s.db.First(&syncState, "id = ?", "main")
-
 	now := time.Now().Unix()
-
-	if result.GetDB().Error == nil {
-		// Запись существует, обновляем
-		s.db.GetDB().Model(&syncState).Updates(map[string]interface{}{
-			"LastSyncedAt":    now,
-			"ServerTimestamp": serverTimestamp,
-			"UpdatedAt":       now,
-		})
-	} else {
-		// Запись не существует, создаем
-		s.db.Create(&model.SyncState{
-			ID:              "main",
-			LastSyncedAt:    now,
-			ServerTimestamp: serverTimestamp,
-			UpdatedAt:       now,
-		})
+	syncState := model.SyncState{
+		ID:              "main",
+		LastSyncedAt:    now,
+		ServerTimestamp: serverTimestamp,
+		UpdatedAt:       now,
 	}
+	// Используем Save для обновления или создания записи
+	tx := s.db.Save(&syncState)
 
-	log.Printf("Состояние синхронизации обновлено: lastSyncedAt=%d, serverTimestamp=%d", now, serverTimestamp)
+	// Проверяем ошибку
+	if tx.GetDB().Error != nil {
+		log.Printf("Ошибка сохранения sync_state: %v", tx.GetDB().Error)
+	} else {
+		log.Printf("Состояние синхронизации сохранено: lastSyncedAt=%d, serverTimestamp=%d", now, serverTimestamp)
+	}
 }
 
 func (s *Sync) startSpinner(title string) *pterm.SpinnerPrinter {

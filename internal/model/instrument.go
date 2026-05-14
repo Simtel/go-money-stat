@@ -1,7 +1,7 @@
 package model
 
 type Instrument struct {
-	Id         int
+	Id int `gorm:"primaryKey"`
 	Title      string
 	ShortTitle string
 	Symbol     string

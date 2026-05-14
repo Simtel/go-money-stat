@@ -22,7 +22,8 @@ func RunSync(app *app.App) *cobra.Command {
 		api := zenmoney.NewApi(client)
 		sync := usecase.NewSync(db.NewDBService(gorm), api)
 
-		sync.FullSync()
+		// IncrementalSync сам определит, нужна ли полная синхронизация
+		sync.IncrementalSync()
 
 		return nil
 	}

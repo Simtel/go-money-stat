@@ -53,8 +53,14 @@ func (api *Api) DiffSince(timestamp int64) (*Response, error) {
 
 	bearer := "Bearer " + token
 
-	// Отправляем timestamp последней синхронизации
-	d := Diff{CurrentClientTimestamp: timestamp, ServerTimestamp: 0}
+	// Если timestamp = 0, используем текущее время в секундах
+	clientTimestamp := timestamp
+	if clientTimestamp == 0 {
+		clientTimestamp = time.Now().Unix()
+	}
+	log.Printf("[DiffSince] currentClientTimestamp=%d (в секундах)", clientTimestamp)
+
+	d := Diff{CurrentClientTimestamp: clientTimestamp, ServerTimestamp: 0}
 	diff, _ := json.Marshal(d)
 
 	req, errorReq := http.NewRequest("POST", BASE_URL, bytes.NewReader(diff))

@@ -1,6 +1,9 @@
 package db
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+)
 
 type DBServiceInterface interface {
 	Create(value interface{}) DBServiceInterface
@@ -8,10 +11,13 @@ type DBServiceInterface interface {
 	Delete(value interface{}, conds ...interface{}) DBServiceInterface
 	First(dest interface{}, conds ...interface{}) DBServiceInterface
 	Updates(value interface{}) DBServiceInterface
+	Save(value interface{}) DBServiceInterface
 	Exec(sql string, values ...interface{}) DBServiceInterface
 	GetDB() *gorm.DB
 	Model(dest interface{}) DBServiceInterface
 	Association(field string) *gorm.Association
+	Clauses(onConflict *clause.OnConflict) DBServiceInterface
+	Select(query interface{}, args ...interface{}) DBServiceInterface
 }
 
 type DBService struct {
@@ -36,12 +42,17 @@ func (s *DBService) Delete(value interface{}, conds ...interface{}) (tx DBServic
 }
 
 func (s *DBService) First(dest interface{}, conds ...interface{}) DBServiceInterface {
-	s.db.First(dest, conds...)
+	s.db = s.db.First(dest, conds...)
 	return s
 }
 
 func (s *DBService) Updates(value interface{}) DBServiceInterface {
 	s.db.Updates(value)
+	return s
+}
+
+func (s *DBService) Save(value interface{}) DBServiceInterface {
+	s.db.Save(value)
 	return s
 }
 
@@ -61,4 +72,12 @@ func (s *DBService) Model(dest interface{}) DBServiceInterface {
 
 func (s *DBService) Association(field string) *gorm.Association {
 	return s.db.Association(field)
+}
+
+func (s *DBService) Clauses(onConflict *clause.OnConflict) (tx DBServiceInterface) {
+	return NewDBService(s.db.Clauses(*onConflict))
+}
+
+func (s *DBService) Select(query interface{}, args ...interface{}) (tx DBServiceInterface) {
+	return NewDBService(s.db.Select(query, args...))
 }
