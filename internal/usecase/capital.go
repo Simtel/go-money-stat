@@ -121,8 +121,20 @@ func (c *Capital) getMonthlyBalance(transactions []model.Transaction) map[string
 
 		monthKey := txDate.Format(baseMonth)
 
-		// Простая сумма без конвертации валют (так как нет данных о курсах)
-		monthlyData[monthKey] += tx.Income - tx.Outcome
+		// Конвертируем валюты в базовую (используем rate из InAccount и OutAccount)
+		incomeRate := 1.0
+		outcomeRate := 1.0
+
+		if tx.InAccount.Currency.Rate > 0 {
+			incomeRate = tx.InAccount.Currency.Rate
+		}
+		if tx.OutAccount.Currency.Rate > 0 {
+			outcomeRate = tx.OutAccount.Currency.Rate
+		}
+
+		// Считаем баланс с конвертацией: Income * incomeRate - Outcome * outcomeRate
+		balance := tx.Income*incomeRate - tx.Outcome*outcomeRate
+		monthlyData[monthKey] += balance
 	}
 
 	return monthlyData

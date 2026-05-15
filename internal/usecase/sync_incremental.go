@@ -155,7 +155,7 @@ func (s *Sync) saveInstruments(instruments []model.Instrument) error {
 	for i := range instruments {
 		tx := s.db.Save(&instruments[i])
 		if tx.GetDB().Error != nil {
-			return fmt.Errorf("ошибка сохранения валюты %s: %w", instruments[i].Id, tx.GetDB().Error)
+			return fmt.Errorf("ошибка сохранения валюты %d: %w", instruments[i].Id, tx.GetDB().Error)
 		}
 	}
 	return nil
@@ -197,7 +197,7 @@ func (s *Sync) upsertTransaction(transaction *zenmoney.Transaction) {
 		if i > 0 {
 			tagIds += ","
 		}
-		tagIds += fmt.Sprintf("%d", tagId)
+		tagIds += fmt.Sprintf("%s", tagId)
 	}
 
 	// Создаем объект транзакции без ассоциаций

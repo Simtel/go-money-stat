@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MockDB struct {
@@ -63,6 +64,21 @@ func (m *MockDB) Model(dest interface{}) db.DBServiceInterface {
 func (m *MockDB) Association(field string) *gorm.Association {
 	// Возвращаем nil для тестов (не критично для тестов)
 	return nil
+}
+
+func (m *MockDB) Clauses(onConflict *clause.OnConflict) db.DBServiceInterface {
+	m.Called(onConflict)
+	return m
+}
+
+func (m *MockDB) Save(value interface{}) db.DBServiceInterface {
+	m.Called(value)
+	return m
+}
+
+func (m *MockDB) Select(query interface{}, args ...interface{}) db.DBServiceInterface {
+	m.Called(query, args)
+	return m
 }
 
 type MockAPI struct {

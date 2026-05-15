@@ -16,6 +16,9 @@ type Transaction struct {
 	OutcomeAccount    string `gorm:"column:outcome_account"`
 	TagIds            string `gorm:"column:tag_ids"`
 	Comment           string
+	Tag        []Tag
+	InAccount  Account
+	OutAccount Account
 }
 
 func (t Transaction) FormatAmount() string {
@@ -51,8 +54,12 @@ func (t Transaction) IsTransfer() bool {
 }
 
 func (t Transaction) GetTagsTitle() string {
-	if t.TagIds == "" {
+	if len(t.Tag) == 0 {
 		return "Перевод"
 	}
-	return t.TagIds
+	result := ""
+	for _, tag := range t.Tag {
+		result += tag.Title + " "
+	}
+	return result
 }
