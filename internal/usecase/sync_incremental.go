@@ -197,7 +197,7 @@ func (s *Sync) upsertTransaction(transaction *zenmoney.Transaction) {
 		if i > 0 {
 			tagIds += ","
 		}
-		tagIds += fmt.Sprintf("%s", tagId)
+		tagIds += tagId
 	}
 
 	// Создаем объект транзакции без ассоциаций
