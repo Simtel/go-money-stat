@@ -16,9 +16,9 @@ type Transaction struct {
 	OutcomeAccount    string `gorm:"column:outcome_account"`
 	TagIds            string `gorm:"column:tag_ids"`
 	Comment           string
-	Tag        []Tag   `gorm:"-"`
-	InAccount  Account `gorm:"-"`
-	OutAccount Account `gorm:"-"`
+	Tag               []Tag   `gorm:"-"`
+	InAccount         Account `gorm:"-"`
+	OutAccount        Account `gorm:"-"`
 }
 
 func (t Transaction) FormatAmount() string {
