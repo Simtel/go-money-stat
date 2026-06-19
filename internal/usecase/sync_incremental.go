@@ -142,9 +142,18 @@ func (s *Sync) syncData(lastTimestamp int64, isFull bool) {
 // saveTags сохраняет теги
 func (s *Sync) saveTags(tags []model.Tag) error {
 	for i := range tags {
-		tx := s.db.Save(&tags[i])
-		if tx.GetDB().Error != nil {
-			return fmt.Errorf("ошибка сохранения тега %s: %w", tags[i].Id, tx.GetDB().Error)
+		var existing model.Tag
+		result := s.db.Where("id = ?", tags[i].Id).First(&existing)
+		if result.GetDB().Error == nil {
+			tx := s.db.Save(&tags[i])
+			if tx.GetDB().Error != nil {
+				return fmt.Errorf("ошибка обновления тега %s: %w", tags[i].Id, tx.GetDB().Error)
+			}
+		} else {
+			tx := s.db.Create(&tags[i])
+			if tx.GetDB().Error != nil {
+				return fmt.Errorf("ошибка создания тега %s: %w", tags[i].Id, tx.GetDB().Error)
+			}
 		}
 	}
 	return nil
@@ -153,9 +162,18 @@ func (s *Sync) saveTags(tags []model.Tag) error {
 // saveInstruments сохраняет валюты
 func (s *Sync) saveInstruments(instruments []model.Instrument) error {
 	for i := range instruments {
-		tx := s.db.Save(&instruments[i])
-		if tx.GetDB().Error != nil {
-			return fmt.Errorf("ошибка сохранения валюты %d: %w", instruments[i].Id, tx.GetDB().Error)
+		var existing model.Instrument
+		result := s.db.Where("id = ?", instruments[i].Id).First(&existing)
+		if result.GetDB().Error == nil {
+			tx := s.db.Save(&instruments[i])
+			if tx.GetDB().Error != nil {
+				return fmt.Errorf("ошибка обновления валюты %d: %w", instruments[i].Id, tx.GetDB().Error)
+			}
+		} else {
+			tx := s.db.Create(&instruments[i])
+			if tx.GetDB().Error != nil {
+				return fmt.Errorf("ошибка создания валюты %d: %w", instruments[i].Id, tx.GetDB().Error)
+			}
 		}
 	}
 	return nil

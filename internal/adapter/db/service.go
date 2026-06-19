@@ -29,8 +29,7 @@ func NewDBService(db *gorm.DB) DBServiceInterface {
 }
 
 func (s *DBService) Create(value interface{}) (tx DBServiceInterface) {
-	s.db.Create(value)
-	return s
+	return NewDBService(s.db.Create(value))
 }
 
 func (s *DBService) Where(query interface{}, args ...interface{}) (tx DBServiceInterface) {
@@ -42,18 +41,15 @@ func (s *DBService) Delete(value interface{}, conds ...interface{}) (tx DBServic
 }
 
 func (s *DBService) First(dest interface{}, conds ...interface{}) DBServiceInterface {
-	s.db = s.db.First(dest, conds...)
-	return s
+	return NewDBService(s.db.First(dest, conds...))
 }
 
 func (s *DBService) Updates(value interface{}) DBServiceInterface {
-	s.db.Updates(value)
-	return s
+	return NewDBService(s.db.Updates(value))
 }
 
 func (s *DBService) Save(value interface{}) DBServiceInterface {
-	s.db.Save(value)
-	return s
+	return NewDBService(s.db.Save(value))
 }
 
 func (s *DBService) Exec(sql string, values ...interface{}) DBServiceInterface {
@@ -66,8 +62,7 @@ func (s *DBService) GetDB() *gorm.DB {
 }
 
 func (s *DBService) Model(dest interface{}) DBServiceInterface {
-	s.db = s.db.Model(dest)
-	return s
+	return NewDBService(s.db.Model(dest))
 }
 
 func (s *DBService) Association(field string) *gorm.Association {
