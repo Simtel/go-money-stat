@@ -7,7 +7,6 @@ import (
 	"money-stat/internal/app"
 	"money-stat/internal/usecase"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -46,16 +45,13 @@ func RunCapital(app *app.App) *cobra.Command {
 			app.GetContainer().GetAccountRepository(),
 		)
 
-		valuesSlice, err := capital.GetCapital()
+		valuesSlice, err := capital.GetCapital(selectYear)
 
 		if err != nil {
 			return err
 		}
 
 		for _, row := range valuesSlice {
-			if !strings.HasPrefix(row.Month, strconv.Itoa(selectYear)+"-") {
-				continue
-			}
 			tableData = append(
 				tableData,
 				[]string{
@@ -63,7 +59,6 @@ func RunCapital(app *app.App) *cobra.Command {
 					strconv.FormatFloat(row.Balance, 'f', 2, 64),
 				},
 			)
-
 		}
 
 		errTable := pterm.DefaultTable.WithHasHeader().WithBoxed().WithRowSeparator("-").WithData(tableData).Render()

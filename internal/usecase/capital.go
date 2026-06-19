@@ -38,14 +38,20 @@ func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRep
 	}
 }
 
-func (c *Capital) GetCapital() ([]MonthlyBalance, error) {
+func (c *Capital) GetCapital(year int) ([]MonthlyBalance, error) {
 	// Проверяем актуальность кэша
 	if c.cachedResult != nil && time.Since(c.cacheTime) < c.cacheTTL {
 		return c.cachedResult, nil
 	}
 
-	transactions, _ := c.transactionRepo.GetAll()
-	result := c.calculateMonthlyBalances(transactions)
+	transactions, err := c.transactionRepo.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("получение транзакций: %w", err)
+	}
+
+	accounts := c.accountRepo.GetAll()
+
+	result := c.calculateMonthlyBalances(transactions, accounts, year)
 
 	// Обновляем кэш
 	c.cachedResult = make([]MonthlyBalance, len(result))
@@ -55,9 +61,15 @@ func (c *Capital) GetCapital() ([]MonthlyBalance, error) {
 	return result, nil
 }
 
-func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []MonthlyBalance {
-	if len(transactions) == 0 {
-		return []MonthlyBalance{}
+func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction, accounts []model.Account, year int) []MonthlyBalance {
+	// Вычисляем начальный баланс всех счетов (в базовой валюте)
+	startCapital := 0.0
+	for _, acc := range accounts {
+		rate := 1.0
+		if acc.Currency.Rate > 0 {
+			rate = acc.Currency.Rate
+		}
+		startCapital += acc.StartBalance * rate
 	}
 
 	// Фильтруем удалённые транзакции
@@ -68,52 +80,19 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction) []M
 		}
 	}
 
-	if len(validTx) == 0 {
-		return []MonthlyBalance{}
-	}
-
+	// Сортируем транзакции по дате
 	sort.Slice(validTx, func(i, j int) bool {
-		dateI, _ := time.Parse(dateLayout, validTx[i].Date)
-		dateJ, _ := time.Parse(dateLayout, validTx[j].Date)
+		dateI, errI := time.Parse(dateLayout, validTx[i].Date)
+		dateJ, errJ := time.Parse(dateLayout, validTx[j].Date)
+		if errI != nil || errJ != nil {
+			return false
+		}
 		return dateI.Before(dateJ)
 	})
 
-	firstDate, err := time.Parse(dateLayout, validTx[0].Date)
-	if err != nil {
-		fmt.Printf("Ошибка парсинга даты: %v\n", err)
-		return []MonthlyBalance{}
-	}
-
-	monthlyData := c.getMonthlyBalance(validTx)
-
-	lastDate, _ := time.Parse(dateLayout, validTx[len(validTx)-1].Date)
-
-	var result []MonthlyBalance
-	currentBalance := 0.0
-
-	current := time.Date(firstDate.Year(), firstDate.Month(), 1, 0, 0, 0, 0, time.UTC)
-	end := time.Date(lastDate.Year(), lastDate.Month(), 1, 0, 0, 0, 0, time.UTC)
-
-	for current.Before(end.AddDate(0, 1, 0)) {
-		monthKey := current.Format(baseMonth)
-		monthChange := monthlyData[monthKey]
-		currentBalance += monthChange
-
-		result = append(result, MonthlyBalance{
-			Month:   monthKey,
-			Balance: currentBalance,
-		})
-
-		current = current.AddDate(0, 1, 0)
-	}
-
-	return result
-}
-
-func (c *Capital) getMonthlyBalance(transactions []model.Transaction) map[string]float64 {
-	monthlyData := make(map[string]float64)
-
-	for _, tx := range transactions {
+	// Группируем изменения по месяцам
+	monthlyChanges := make(map[string]float64)
+	for _, tx := range validTx {
 		txDate, err := time.Parse(dateLayout, tx.Date)
 		if err != nil {
 			continue
@@ -121,7 +100,6 @@ func (c *Capital) getMonthlyBalance(transactions []model.Transaction) map[string
 
 		monthKey := txDate.Format(baseMonth)
 
-		// Конвертируем валюты в базовую (используем rate из InAccount и OutAccount)
 		incomeRate := 1.0
 		outcomeRate := 1.0
 
@@ -132,10 +110,47 @@ func (c *Capital) getMonthlyBalance(transactions []model.Transaction) map[string
 			outcomeRate = tx.OutAccount.Currency.Rate
 		}
 
-		// Считаем баланс с конвертацией: Income * incomeRate - Outcome * outcomeRate
-		balance := tx.Income*incomeRate - tx.Outcome*outcomeRate
-		monthlyData[monthKey] += balance
+		change := tx.Income*incomeRate - tx.Outcome*outcomeRate
+		monthlyChanges[monthKey] += change
 	}
 
-	return monthlyData
+	// Вычисляем капитал на начало запрошенного года:
+	// startCapital + все изменения до начала года
+	capitalAtYearStart := startCapital
+	yearStart := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	// Сортируем ключи месяцев для накопления
+	var monthKeys []string
+	for k := range monthlyChanges {
+		monthKeys = append(monthKeys, k)
+	}
+	sort.Strings(monthKeys)
+
+	for _, monthKey := range monthKeys {
+		monthDate, err := time.Parse(baseMonth, monthKey)
+		if err != nil {
+			continue
+		}
+		if monthDate.Before(yearStart) {
+			capitalAtYearStart += monthlyChanges[monthKey]
+		}
+	}
+
+	// Формируем результат — все 12 месяцев года
+	currentBalance := capitalAtYearStart
+	var result []MonthlyBalance
+
+	for m := 1; m <= 12; m++ {
+		monthDate := time.Date(year, time.Month(m), 1, 0, 0, 0, 0, time.UTC)
+		monthKey := monthDate.Format(baseMonth)
+
+		currentBalance += monthlyChanges[monthKey]
+
+		result = append(result, MonthlyBalance{
+			Month:   monthKey,
+			Balance: currentBalance,
+		})
+	}
+
+	return result
 }
