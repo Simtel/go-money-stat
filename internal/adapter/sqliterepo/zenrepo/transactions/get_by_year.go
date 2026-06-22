@@ -19,6 +19,8 @@ func (r *Repository) GetByYear(year int) []model.Transaction {
 			firstDay.Format("2006-01-02"),
 			lastDay.Format("2006-01-02"),
 			0).
+		Preload("InAccount.Currency").
+		Preload("OutAccount.Currency").
 		Order("date ASC").
 		Find(&transactions).
 		Error

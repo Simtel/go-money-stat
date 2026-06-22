@@ -7,6 +7,8 @@ func (r *Repository) GetAll() ([]model.Transaction, error) {
 	var transactions []model.Transaction
 	err := db.Model(&model.Transaction{}).
 		Where("deleted = ?", 0).
+		Preload("InAccount.Currency").
+		Preload("OutAccount.Currency").
 		Order("date ASC").
 		Find(&transactions).
 		Error

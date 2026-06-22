@@ -20,6 +20,7 @@ type Capital struct {
 	accountRepo accounts.RepositoryInterface
 
 	cachedResult []MonthlyBalance
+	cachedYear int
 
 	cacheTime time.Time
 	cacheTTL  time.Duration
@@ -40,7 +41,7 @@ func NewCapital(transactionRepo transactionsRepo.RepositoryInterface, accountRep
 
 func (c *Capital) GetCapital(year int) ([]MonthlyBalance, error) {
 	// Проверяем актуальность кэша
-	if c.cachedResult != nil && time.Since(c.cacheTime) < c.cacheTTL {
+	if c.cachedResult != nil && c.cachedYear == year && time.Since(c.cacheTime) < c.cacheTTL {
 		return c.cachedResult, nil
 	}
 
@@ -56,6 +57,7 @@ func (c *Capital) GetCapital(year int) ([]MonthlyBalance, error) {
 	// Обновляем кэш
 	c.cachedResult = make([]MonthlyBalance, len(result))
 	copy(c.cachedResult, result)
+	c.cachedYear = year
 	c.cacheTime = time.Now()
 
 	return result, nil
@@ -72,7 +74,7 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction, acc
 		startCapital += acc.StartBalance * rate
 	}
 
-	// Фильтруем удалённые транзакции
+	// Фильтруем удалённые транзакции (защита от дурака, репозиторий тоже фильтрует)
 	var validTx []model.Transaction
 	for _, tx := range transactions {
 		if !tx.Deleted {
@@ -84,8 +86,14 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction, acc
 	sort.Slice(validTx, func(i, j int) bool {
 		dateI, errI := time.Parse(dateLayout, validTx[i].Date)
 		dateJ, errJ := time.Parse(dateLayout, validTx[j].Date)
-		if errI != nil || errJ != nil {
+		if errI != nil && errJ != nil {
 			return false
+		}
+		if errI != nil {
+			return false
+		}
+		if errJ != nil {
+			return true
 		}
 		return dateI.Before(dateJ)
 	})

@@ -1,69 +1,87 @@
 package transactions
 
 import (
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"log"
-	"regexp"
+	"money-stat/internal/model"
 	"testing"
 )
 
+func setupTestDB(t *testing.T) *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	assert.NoError(t, err)
+
+	err = db.AutoMigrate(&model.Transaction{}, &model.Account{}, &model.Instrument{})
+	assert.NoError(t, err)
+
+	// Создаём тестовые валюты и счета
+	db.Create(&model.Instrument{Id: 1, Title: "USD", ShortTitle: "USD", Symbol: "$", Rate: 75.0})
+	db.Create(&model.Account{Id: "acc1", Title: "Счёт 1", Balance: 0, StartBalance: 0, Instrument: 1})
+	db.Create(&model.Account{Id: "acc2", Title: "Счёт 2", Balance: 0, StartBalance: 0, Instrument: 1})
+
+	return db
+}
+
 func TestRepository_GetByYear(t *testing.T) {
-	repository, mock := getRepository()
+	db := setupTestDB(t)
+	repo := &Repository{db: db}
 
-	rows := sqlmock.NewRows([]string{"date", "income", "outcome", "amount", "comment", "tags", "created_at"}).
-		AddRow("2021-09-01", 100, 0, 100, "", "", 0).
-		AddRow("2021-09-02", 200, 0, 200, "", "", 0)
+	db.Create(&model.Transaction{
+		Id: "1", Date: "2021-09-01", Income: 100, Outcome: 0,
+		IncomeAccount: "acc1", OutcomeAccount: "acc2", Deleted: false,
+	})
+	db.Create(&model.Transaction{
+		Id: "2", Date: "2021-09-02", Income: 200, Outcome: 0,
+		IncomeAccount: "acc1", OutcomeAccount: "acc2", Deleted: false,
+	})
+	// Транзакция вне диапазона
+	db.Create(&model.Transaction{
+		Id: "3", Date: "2022-01-01", Income: 300, Outcome: 0,
+		IncomeAccount: "acc1", OutcomeAccount: "acc2", Deleted: false,
+	})
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `transactions` WHERE date BETWEEN ? and ? AND deleted = ? ORDER BY date ASC")).
-		WithArgs("2021-01-01", "2021-12-31", 0).
-		WillReturnRows(rows)
-
-	transactions := repository.GetByYear(2021)
+	transactions := repo.GetByYear(2021)
 	assert.Equal(t, 2, len(transactions))
+	// Проверяем, что InAccount/OutAccount загружены
+	assert.Equal(t, "Счёт 1", transactions[0].InAccount.Title)
+	assert.Equal(t, "Счёт 2", transactions[0].OutAccount.Title)
 }
 
 func TestRepository_GetAll(t *testing.T) {
-	repository, mock := getRepository()
+	db := setupTestDB(t)
+	repo := &Repository{db: db}
 
-	rows := sqlmock.NewRows([]string{"id", "changed", "created", "income_instrument", "income", "outcome_instrument", "outcome", "date", "deleted", "income_account", "outcome_account", "tag_ids", "comment"}).
-		AddRow("1", 0, 0, 0, 100, 0, 0, "2021-09-01", 0, "acc1", "acc2", "", "").
-		AddRow("2", 0, 0, 0, 200, 0, 0, "2021-09-02", 0, "acc1", "acc2", "", "")
+	// Создаём обычную и удалённую транзакции
+	db.Create(&model.Transaction{
+		Id: "1", Date: "2021-09-01", Income: 100, Outcome: 0,
+		IncomeAccount: "acc1", OutcomeAccount: "acc2", Deleted: false,
+	})
+	db.Create(&model.Transaction{
+		Id: "2", Date: "2021-09-02", Income: 200, Outcome: 0,
+		IncomeAccount: "acc1", OutcomeAccount: "acc2", Deleted: true,
+	})
 
-	mock.ExpectQuery("SELECT (.+) FROM `transactions` WHERE deleted = \\? ORDER BY date ASC").
-		WithArgs(0).
-		WillReturnRows(rows)
-
-	transactions, _ := repository.GetAll()
-	assert.Equal(t, 2, len(transactions))
+	transactions, err := repo.GetAll()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(transactions))
+	assert.Equal(t, "Счёт 1", transactions[0].InAccount.Title)
+	assert.Equal(t, 75.0, transactions[0].InAccount.Currency.Rate)
 }
 
 func TestRepository_GetCurrentMonth(t *testing.T) {
-	repository, mock := getRepository()
+	db := setupTestDB(t)
+	repo := &Repository{db: db}
 
-	rows := sqlmock.NewRows([]string{"date", "income", "outcome", "amount", "comment", "tags", "created_at"}).
-		AddRow("2021-09-01", 100, 0, 100, "", "", 0).
-		AddRow("2021-09-02", 200, 0, 200, "", "", 0)
-
-	mock.ExpectQuery("SELECT (.+) FROM `transactions`").
-		WillReturnRows(rows)
-
-	transactions := repository.GetCurrentMonth()
-	assert.Equal(t, 2, len(transactions))
+	// Этот тест использует текущую дату, поэтому просто проверяем, что метод не паникует
+	transactions := repo.GetCurrentMonth()
+	assert.NotNil(t, transactions)
 }
 
-func getRepository() (RepositoryInterface, sqlmock.Sqlmock) {
-	db, mock, err := sqlmock.New()
+func TestRepository_GetPreviousMonth(t *testing.T) {
+	db := setupTestDB(t)
+	repo := &Repository{db: db}
 
-	if err != nil {
-		log.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	gormDB, _ := gorm.Open(mysql.New(mysql.Config{
-		Conn:                      db,
-		SkipInitializeWithVersion: true,
-	}), &gorm.Config{})
-	return &Repository{db: gormDB}, mock
+	transactions := repo.GetPreviousMonth()
+	assert.NotNil(t, transactions)
 }
