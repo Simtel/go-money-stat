@@ -48,10 +48,10 @@ func (s *Sync) IncrementalSync() {
 		return
 	}
 
-	lastTimestamp := syncState.LastSyncedAt
-	log.Printf("Последняя синхронизация: %s (timestamp: %d)", time.Unix(lastTimestamp, 0).Format("2006-01-02 15:04:05"), lastTimestamp)
+	serverTimestamp := syncState.ServerTimestamp
+	log.Printf("Последняя синхронизация: %s (serverTimestamp: %d)", time.Unix(syncState.LastSyncedAt, 0).Format("2006-01-02 15:04:05"), serverTimestamp)
 
-	s.syncData(lastTimestamp, false)
+	s.syncData(serverTimestamp, false)
 }
 
 // syncData выполняет синхронизацию данных с указанным timestamp
