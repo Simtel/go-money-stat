@@ -41,7 +41,8 @@ func TestRepository_GetByYear(t *testing.T) {
 		IncomeAccount: "acc1", OutcomeAccount: "acc2", Deleted: false,
 	})
 
-	transactions := repo.GetByYear(2021)
+	transactions, err := repo.GetByYear(2021)
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(transactions))
 	// Проверяем, что InAccount/OutAccount загружены
 	assert.Equal(t, "Счёт 1", transactions[0].InAccount.Title)

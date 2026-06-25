@@ -21,7 +21,10 @@ func RunAccountList(app *app.App) *cobra.Command {
 
 		accounts := usecase.NewAccounts(app.GetContainer().GetAccountRepository())
 
-		stat := accounts.GetAccounts()
+		stat, err := accounts.GetAccounts()
+		if err != nil {
+			return err
+		}
 
 		summData := pterm.TableData{
 			{

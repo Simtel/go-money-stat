@@ -65,11 +65,12 @@ func (mr *MockRepositoryInterfaceMockRecorder) GetBetweenDate(first, last interf
 }
 
 // GetByYear mocks base method.
-func (m *MockRepositoryInterface) GetByYear(year int) []model.Transaction {
+func (m *MockRepositoryInterface) GetByYear(year int) ([]model.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByYear", year)
 	ret0, _ := ret[0].([]model.Transaction)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetByYear indicates an expected call of GetByYear.

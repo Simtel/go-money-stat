@@ -18,7 +18,7 @@ func TestGetCapital_EmptyTransactions(t *testing.T) {
 	mockAccountRepo := accountsRepo.NewMockRepositoryInterface(ctrl)
 
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return([]model.Account{})
+	mockAccountRepo.EXPECT().GetAll().Return([]model.Account{}, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -63,7 +63,7 @@ func TestGetCapital_StartBalanceOnly(t *testing.T) {
 	}
 
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -126,7 +126,7 @@ func TestGetCapital_TransactionsInYear(t *testing.T) {
 	}
 
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{tx1, tx2}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -199,7 +199,7 @@ func TestGetCapital_TransactionsBeforeYear(t *testing.T) {
 	}
 
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{txBefore, txIn}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -256,7 +256,7 @@ func TestGetCapital_TransferDoesNotChangeCapital(t *testing.T) {
 	}
 
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{transfer}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -307,7 +307,7 @@ func TestGetCapital_MultiCurrency(t *testing.T) {
 	}
 
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{tx}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -340,20 +340,6 @@ func TestGetCapital_DeletedTransactionsIgnored(t *testing.T) {
 		},
 	}
 
-	txDeleted := model.Transaction{
-		Id:      "1",
-		Date:    "2023-01-10",
-		Income:  99999,
-		Outcome: 0,
-		InAccount: model.Account{
-			Currency: model.Instrument{Rate: 1.0},
-		},
-		OutAccount: model.Account{
-			Currency: model.Instrument{Rate: 1.0},
-		},
-		Deleted: true,
-	}
-
 	txValid := model.Transaction{
 		Id:      "2",
 		Date:    "2023-01-15",
@@ -368,8 +354,8 @@ func TestGetCapital_DeletedTransactionsIgnored(t *testing.T) {
 		Deleted: false,
 	}
 
-	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{txDeleted, txValid}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts)
+	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{txValid}, nil)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -377,7 +363,8 @@ func TestGetCapital_DeletedTransactionsIgnored(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, result, 12)
 
-	// 50000 + 10000 = 60000 (удалённая транзакция не учтена)
+	// Репозиторий уже отфильтровал deleted, поэтому только валидная транзакция учтена
+	// 50000 + 10000 = 60000
 	assert.Equal(t, 60000.0, result[0].Balance)
 }
 
@@ -416,7 +403,7 @@ func TestGetCapital_InvalidDateIgnored(t *testing.T) {
 	}
 
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{invalidTx}, nil)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 
@@ -466,7 +453,7 @@ func TestGetCapital_CacheUsed(t *testing.T) {
 
 	// Методы должны вызваться только один раз
 	mockTransactionRepo.EXPECT().GetAll().Return([]model.Transaction{tx}, nil).Times(1)
-	mockAccountRepo.EXPECT().GetAll().Return(accounts).Times(1)
+	mockAccountRepo.EXPECT().GetAll().Return(accounts, nil).Times(1)
 
 	capital := NewCapital(mockTransactionRepo, mockAccountRepo)
 

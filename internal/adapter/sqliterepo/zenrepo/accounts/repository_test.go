@@ -18,7 +18,8 @@ func TestRepository_GetByYear(t *testing.T) {
 
 	mock.ExpectQuery("SELECT (.+) FROM `accounts`").WillReturnRows(rows)
 
-	transactions := repository.GetAll()
+	transactions, err := repository.GetAll()
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(transactions))
 }
 

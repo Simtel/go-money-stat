@@ -33,9 +33,9 @@ func (m *mockRepository) GetAll() ([]model.Transaction, error) {
 	return args.Get(0).([]model.Transaction), nil
 }
 
-func (m *mockRepository) GetByYear(year int) []model.Transaction {
+func (m *mockRepository) GetByYear(year int) ([]model.Transaction, error) {
 	args := m.Called(year)
-	return args.Get(0).([]model.Transaction)
+	return args.Get(0).([]model.Transaction), args.Error(1)
 }
 
 func TestYear_GetYearStat(t *testing.T) {
@@ -80,9 +80,12 @@ func TestYear_GetYearStat(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			repo := &mockRepository{}
-			repo.On("GetByYear", tc.selectYear).Return(tc.transactions)
+			repo.On("GetByYear", tc.selectYear).Return(tc.transactions, nil)
 			year := usecase.NewYear(repo)
-			stats := year.GetYearStat(tc.selectYear)
+			stats, err := year.GetYearStat(tc.selectYear)
+			if err != nil {
+				t.Fatalf("GetYearStat() unexpected error: %v", err)
+			}
 
 			if !reflect.DeepEqual(stats, tc.expectedStats) {
 				t.Errorf("GetYearStat() = %v, expected %v", stats, tc.expectedStats)

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/transactions"
 	"sort"
 	"time"
@@ -23,11 +24,16 @@ func NewYear(repository transactions.RepositoryInterface) *Year {
 	return &Year{repository: repository}
 }
 
-func (y *Year) GetYearStat(selectYear int) []MonthStat {
+func (y *Year) GetYearStat(selectYear int) ([]MonthStat, error) {
 
 	stats := make(map[string]MonthStat)
 
-	for _, transaction := range y.repository.GetByYear(selectYear) {
+	transactions, err := y.repository.GetByYear(selectYear)
+	if err != nil {
+		return nil, fmt.Errorf("получение транзакций за год %d: %w", selectYear, err)
+	}
+
+	for _, transaction := range transactions {
 		layout := "2006-01-02"
 		tTime, _ := time.Parse(layout, transaction.Date)
 		key := tTime.Format("2006-01")
@@ -55,6 +61,6 @@ func (y *Year) GetYearStat(selectYear int) []MonthStat {
 		return valuesSlice[i].Month < valuesSlice[j].Month
 	})
 
-	return valuesSlice
+	return valuesSlice, nil
 
 }

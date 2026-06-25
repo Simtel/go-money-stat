@@ -33,9 +33,9 @@ func (m *MockRepository) GetAll() ([]model.Transaction, error) {
 	return args.Get(0).([]model.Transaction), nil
 }
 
-func (m *MockRepository) GetByYear(year int) []model.Transaction {
+func (m *MockRepository) GetByYear(year int) ([]model.Transaction, error) {
 	args := m.Called(year)
-	return args.Get(0).([]model.Transaction)
+	return args.Get(0).([]model.Transaction), args.Error(1)
 }
 
 func TestGetMonthStat(t *testing.T) {

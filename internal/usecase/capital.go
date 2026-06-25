@@ -50,7 +50,10 @@ func (c *Capital) GetCapital(year int) ([]MonthlyBalance, error) {
 		return nil, fmt.Errorf("получение транзакций: %w", err)
 	}
 
-	accounts := c.accountRepo.GetAll()
+	accounts, err := c.accountRepo.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("получение счетов: %w", err)
+	}
 
 	result := c.calculateMonthlyBalances(transactions, accounts, year)
 
@@ -74,18 +77,10 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction, acc
 		startCapital += acc.StartBalance * rate
 	}
 
-	// Фильтруем удалённые транзакции (защита от дурака, репозиторий тоже фильтрует)
-	var validTx []model.Transaction
-	for _, tx := range transactions {
-		if !tx.Deleted {
-			validTx = append(validTx, tx)
-		}
-	}
-
 	// Сортируем транзакции по дате
-	sort.Slice(validTx, func(i, j int) bool {
-		dateI, errI := time.Parse(dateLayout, validTx[i].Date)
-		dateJ, errJ := time.Parse(dateLayout, validTx[j].Date)
+	sort.Slice(transactions, func(i, j int) bool {
+		dateI, errI := time.Parse(dateLayout, transactions[i].Date)
+		dateJ, errJ := time.Parse(dateLayout, transactions[j].Date)
 		if errI != nil && errJ != nil {
 			return false
 		}
@@ -100,7 +95,7 @@ func (c *Capital) calculateMonthlyBalances(transactions []model.Transaction, acc
 
 	// Группируем изменения по месяцам
 	monthlyChanges := make(map[string]float64)
-	for _, tx := range validTx {
+	for _, tx := range transactions {
 		txDate, err := time.Parse(dateLayout, tx.Date)
 		if err != nil {
 			continue

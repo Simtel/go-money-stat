@@ -6,7 +6,7 @@ import (
 )
 
 type RepositoryInterface interface {
-	GetAll() []model.Account
+	GetAll() ([]model.Account, error)
 }
 
 type Repository struct {

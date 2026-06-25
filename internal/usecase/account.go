@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"money-stat/internal/adapter/sqliterepo/zenrepo/accounts"
 	"money-stat/internal/model"
 	"strconv"
@@ -27,9 +28,12 @@ func NewAccounts(repo accounts.RepositoryInterface) *Accounts {
 	return &Accounts{repo: repo}
 }
 
-func (a *Accounts) GetAccounts() AccountStatDto {
+func (a *Accounts) GetAccounts() (AccountStatDto, error) {
 
-	accountsList := a.repo.GetAll()
+	accountsList, err := a.repo.GetAll()
+	if err != nil {
+		return AccountStatDto{}, fmt.Errorf("получение счетов: %w", err)
+	}
 
 	var statDto AccountStatDto
 
@@ -47,7 +51,7 @@ func (a *Accounts) GetAccounts() AccountStatDto {
 		statDto.updateSummByAccountType(account)
 	}
 
-	return statDto
+	return statDto, nil
 
 }
 func (a *AccountStatDto) updateSummByAccountType(account model.Account) {

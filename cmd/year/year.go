@@ -37,7 +37,10 @@ func Run(app *app.App) *cobra.Command {
 
 		year := usecase.NewYear(app.GetContainer().GetTransactionRepository())
 
-		valuesSlice := year.GetYearStat(selectYear)
+		valuesSlice, err := year.GetYearStat(selectYear)
+		if err != nil {
+			return err
+		}
 
 		tableData := pterm.TableData{
 			{"Месяц", "Доход", "Расход", "Чистыми"},
