@@ -13,6 +13,7 @@ import (
 
 	"money-stat/cmd/accounts"
 	"money-stat/cmd/capital"
+	"money-stat/cmd/dynamics"
 	"money-stat/cmd/migrate"
 	"money-stat/cmd/months"
 	"money-stat/cmd/sync"
@@ -44,6 +45,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		accounts.Run(app),
+		dynamics.Run(app),
 		months.Run(app),
 		year.Run(app),
 		sync.Run(app),
