@@ -20,7 +20,7 @@ type Capital struct {
 	accountRepo accounts.RepositoryInterface
 
 	cachedResult []MonthlyBalance
-	cachedYear int
+	cachedYear   int
 
 	cacheTime time.Time
 	cacheTTL  time.Duration
