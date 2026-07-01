@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"money-stat/internal/config"
@@ -58,7 +59,11 @@ func (api *Api) DiffSince(timestamp int64) (*Response, error) {
 	log.Printf("[DiffSince] currentClientTimestamp=%d, serverTimestamp=%d (в секундах)", clientTimestamp, timestamp)
 
 	d := Diff{CurrentClientTimestamp: clientTimestamp, ServerTimestamp: timestamp}
-	diff, _ := json.Marshal(d)
+	diff, err := json.Marshal(d)
+	if err != nil {
+		log.Printf("[DiffSince] Ошибка маршалинга JSON: %v, всего заняло: %v", err, time.Since(startTime))
+		return nil, fmt.Errorf("ошибка маршалинга JSON запроса DiffSince: %w", err)
+	}
 
 	req, errorReq := http.NewRequest("POST", BASE_URL, bytes.NewReader(diff))
 	if errorReq != nil {
@@ -79,16 +84,25 @@ func (api *Api) DiffSince(timestamp int64) (*Response, error) {
 		log.Printf("[DiffSince] Ошибка выполнения запроса: %v, всего заняло: %v", errorResp, time.Since(startTime))
 		return nil, errorResp
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		log.Printf("[DiffSince] Нестатус 200: %v, всего заняло: %v", resp.StatusCode, time.Since(startTime))
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			log.Printf("[DiffSince] Ошибка чтения тела ошибки: %v", readErr)
+			return nil, errors.New(resp.Status)
+		}
 		log.Printf("[DiffSince] Тело ошибки: %s", string(body))
 		log.Printf("[DiffSince] Чтение тела ошибки заняло: %v", time.Since(startTime))
 		return nil, errors.New(resp.Status)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		log.Printf("[DiffSince] Ошибка чтения ответа: %v, всего заняло: %v", readErr, time.Since(startTime))
+		return nil, fmt.Errorf("ошибка чтения тела ответа DiffSince: %w", readErr)
+	}
 	log.Printf("[DiffSince] Чтение ответа заняло: %v", time.Since(startTime))
 
 	var result Response

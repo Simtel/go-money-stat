@@ -31,7 +31,11 @@ func (api *Api) Diff() (*Response, error) {
 
 	// API ZenMoney ожидает timestamp в секундах
 	d := Diff{time.Now().Unix(), 0}
-	diff, _ := json.Marshal(d)
+	diff, err := json.Marshal(d)
+	if err != nil {
+		log.Printf("[Diff] Ошибка маршалинга JSON: %v, всего заняло: %v", err, time.Since(startTime))
+		return nil, fmt.Errorf("ошибка маршалинга JSON запроса Diff: %w", err)
+	}
 
 	req, errorReq := http.NewRequest("POST", BASE_URL, bytes.NewReader(diff))
 	if errorReq != nil {
@@ -52,25 +56,34 @@ func (api *Api) Diff() (*Response, error) {
 		log.Printf("[Diff] Ошибка выполнения запроса: %v, всего заняло: %v", errorResp, time.Since(startTime))
 		return nil, errorResp
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		log.Printf("[Diff] Нестатус 200: %v, всего заняло: %v", resp.StatusCode, time.Since(startTime))
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			log.Printf("[Diff] Ошибка чтения тела ошибки: %v", readErr)
+			return nil, errors.New(resp.Status)
+		}
 		log.Printf("[Diff] Тело ошибки: %s", string(body))
 		log.Printf("[Diff] Чтение тела ошибки заняло: %v", time.Since(startTime))
 		return nil, errors.New(resp.Status)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		log.Printf("[Diff] Ошибка чтения ответа: %v, всего заняло: %v", readErr, time.Since(startTime))
+		return nil, fmt.Errorf("ошибка чтения тела ответа Diff: %w", readErr)
+	}
 	log.Printf("[Diff] Чтение ответа заняло: %v", time.Since(startTime))
 
 	var result Response
 
 	if err := json.Unmarshal(body, &result); err != nil {
 		log.Printf("[Diff] Ошибка парсинга JSON: %v, всего заняло: %v", err, time.Since(startTime))
-		fmt.Println("Can not unmarshal JSON")
+		return nil, fmt.Errorf("ошибка парсинга JSON ответа Diff: %w", err)
 	}
 
 	log.Printf("[Diff] Запрос Diff завершен, всего заняло: %v", time.Since(startTime))
-	return &result, errorResp
+	return &result, nil
 }
