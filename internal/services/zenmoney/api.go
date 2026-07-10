@@ -84,7 +84,7 @@ func (api *Api) DiffSince(timestamp int64) (*Response, error) {
 		log.Printf("[DiffSince] Ошибка выполнения запроса: %v, всего заняло: %v", errorResp, time.Since(startTime))
 		return nil, errorResp
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		log.Printf("[DiffSince] Нестатус 200: %v, всего заняло: %v", resp.StatusCode, time.Since(startTime))

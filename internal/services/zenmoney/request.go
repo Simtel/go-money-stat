@@ -56,7 +56,7 @@ func (api *Api) Diff() (*Response, error) {
 		log.Printf("[Diff] Ошибка выполнения запроса: %v, всего заняло: %v", errorResp, time.Since(startTime))
 		return nil, errorResp
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		log.Printf("[Diff] Нестатус 200: %v, всего заняло: %v", resp.StatusCode, time.Since(startTime))

@@ -49,16 +49,16 @@ func TestApi_Init(t *testing.T) {
 			originalToken := os.Getenv("ZENMONEY_TOKEN")
 
 			if tc.envToken != "" {
-				os.Setenv("ZENMONEY_TOKEN", tc.envToken)
+				_ = os.Setenv("ZENMONEY_TOKEN", tc.envToken)
 			} else {
-				os.Unsetenv("ZENMONEY_TOKEN")
+				_ = os.Unsetenv("ZENMONEY_TOKEN")
 			}
 
 			defer func() {
 				if originalToken != "" {
-					os.Setenv("ZENMONEY_TOKEN", originalToken)
+					_ = os.Setenv("ZENMONEY_TOKEN", originalToken)
 				} else {
-					os.Unsetenv("ZENMONEY_TOKEN")
+					_ = os.Unsetenv("ZENMONEY_TOKEN")
 				}
 			}()
 

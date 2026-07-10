@@ -27,7 +27,7 @@ func Run(_ *app.App) *cobra.Command {
 				{"migrate", "init", "Инициализация базы данных"},
 			}
 
-			pterm.DefaultTable.
+			_ = pterm.DefaultTable.
 				WithHasHeader().
 				WithBoxed().
 				WithRowSeparator("-").
