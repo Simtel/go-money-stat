@@ -14,6 +14,7 @@ import (
 	"money-stat/cmd/accounts"
 	"money-stat/cmd/capital"
 	"money-stat/cmd/dynamics"
+	"money-stat/cmd/list"
 	"money-stat/cmd/migrate"
 	"money-stat/cmd/months"
 	"money-stat/cmd/sync"
@@ -44,6 +45,7 @@ func main() {
 	rootCmd := &cobra.Command{}
 
 	rootCmd.AddCommand(
+		list.Run(app),
 		accounts.Run(app),
 		dynamics.Run(app),
 		months.Run(app),
