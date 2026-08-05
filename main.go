@@ -15,6 +15,7 @@ import (
 	"money-stat/cmd/capital"
 	"money-stat/cmd/dynamics"
 	"money-stat/cmd/list"
+	"money-stat/cmd/menu"
 	"money-stat/cmd/migrate"
 	"money-stat/cmd/months"
 	"money-stat/cmd/sync"
@@ -44,6 +45,11 @@ func main() {
 
 	rootCmd := &cobra.Command{}
 
+	// Запуск интерактивного меню по умолчанию (при запуске без команды)
+	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		return menu.Start(cmd)
+	}
+
 	rootCmd.AddCommand(
 		list.Run(app),
 		accounts.Run(app),
@@ -53,6 +59,7 @@ func main() {
 		sync.Run(app),
 		capital.Run(app),
 		migrate.Run(app),
+		menu.Run(app),
 	)
 
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
