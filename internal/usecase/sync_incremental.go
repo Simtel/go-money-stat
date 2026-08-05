@@ -143,7 +143,7 @@ func (s *Sync) syncData(lastTimestamp int64, isFull bool) {
 func (s *Sync) saveTags(tags []model.Tag) error {
 	for i := range tags {
 		var existing model.Tag
-		result := s.db.Where("id = ?", tags[i].Id).First(&existing)
+		result := s.db.FirstSilent(&existing, "id = ?", tags[i].Id)
 		if result.GetDB().Error == nil {
 			tx := s.db.Save(&tags[i])
 			if tx.GetDB().Error != nil {
@@ -163,7 +163,7 @@ func (s *Sync) saveTags(tags []model.Tag) error {
 func (s *Sync) saveInstruments(instruments []model.Instrument) error {
 	for i := range instruments {
 		var existing model.Instrument
-		result := s.db.Where("id = ?", instruments[i].Id).First(&existing)
+		result := s.db.FirstSilent(&existing, "id = ?", instruments[i].Id)
 		if result.GetDB().Error == nil {
 			tx := s.db.Save(&instruments[i])
 			if tx.GetDB().Error != nil {
@@ -182,7 +182,7 @@ func (s *Sync) saveInstruments(instruments []model.Instrument) error {
 // upsertAccount создает или обновляет счет
 func (s *Sync) upsertAccount(account *zenmoney.Account) {
 	var existing model.Account
-	result := s.db.First(&existing, "id = ?", account.Id)
+	result := s.db.FirstSilent(&existing, "id = ?", account.Id)
 
 	if result.GetDB().Error == nil {
 		// Счет существует, обновляем
@@ -207,7 +207,7 @@ func (s *Sync) upsertAccount(account *zenmoney.Account) {
 // upsertTransaction создает или обновляет транзакцию
 func (s *Sync) upsertTransaction(transaction *zenmoney.Transaction) {
 	var existing model.Transaction
-	result := s.db.Where("id = ?", transaction.Id).First(&existing)
+	result := s.db.FirstSilent(&existing, "id = ?", transaction.Id)
 
 	// Преобразуем теги в строку через запятую
 	var tagIds string

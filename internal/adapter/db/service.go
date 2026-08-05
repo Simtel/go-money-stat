@@ -1,7 +1,11 @@
 package db
 
 import (
+	"io"
+	"log"
+
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/clause"
 )
 
@@ -10,6 +14,7 @@ type DBServiceInterface interface {
 	Where(query interface{}, args ...interface{}) DBServiceInterface
 	Delete(value interface{}, conds ...interface{}) DBServiceInterface
 	First(dest interface{}, conds ...interface{}) DBServiceInterface
+	FirstSilent(dest interface{}, conds ...interface{}) DBServiceInterface
 	Updates(value interface{}) DBServiceInterface
 	Save(value interface{}) DBServiceInterface
 	Exec(sql string, values ...interface{}) DBServiceInterface
@@ -42,6 +47,16 @@ func (s *DBService) Delete(value interface{}, conds ...interface{}) (tx DBServic
 
 func (s *DBService) First(dest interface{}, conds ...interface{}) DBServiceInterface {
 	return NewDBService(s.db.First(dest, conds...))
+}
+
+func (s *DBService) FirstSilent(dest interface{}, conds ...interface{}) DBServiceInterface {
+	silentLogger := logger.New(log.New(io.Discard, "", 0), logger.Config{
+		Colorful:                  false,
+		IgnoreRecordNotFoundError: true,
+		LogLevel:                  logger.Warn,
+	})
+	tx := s.db.Session(&gorm.Session{Logger: silentLogger}).First(dest, conds...)
+	return NewDBService(tx)
 }
 
 func (s *DBService) Updates(value interface{}) DBServiceInterface {

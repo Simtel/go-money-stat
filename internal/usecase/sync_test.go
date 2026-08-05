@@ -40,6 +40,11 @@ func (m *MockDB) First(dest interface{}, conds ...interface{}) db.DBServiceInter
 	return m
 }
 
+func (m *MockDB) FirstSilent(dest interface{}, conds ...interface{}) db.DBServiceInterface {
+	m.Called(dest, conds)
+	return m
+}
+
 func (m *MockDB) Updates(value interface{}) db.DBServiceInterface {
 	m.Called(value)
 	return m
