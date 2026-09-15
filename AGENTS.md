@@ -29,16 +29,18 @@ go build -o money-stat .
 # Запуск (после копирования .env.example в .env и заполнения ZENMONEY_TOKEN)
 go run . <команда>
 
-# Основные команды
-go run . sync                   # инкрементальная синхронизация с ZenMoney
-go run . sync --full            # полная синхронизация (сброс и перезагрузка)
-go run . months current         # транзакции за текущий месяц
-go run . months previous        # транзакции за прошлый месяц
+# Основные команды (без команды запускается интерактивное меню)
+go run . sync                   # инкрементальная синхронизация (флаги: -i/--incremental — по умолчанию, -f/--full)
+go run . months current|previous # транзакции за текущий/прошлый месяц
 go run . year 2025              # отчёт доходов/расходов за год
+go run . dynamics 2025          # помесячная динамика доходов/расходов
 go run . capital 2025           # помесячный капитал за год
 go run . accounts               # список счетов с балансами
+go run . list                   # список всех команд
 go run . migrate init           # инициализация/миграция БД
 ```
+
+При запуске `go run .` без аргументов открывается интерактивное меню выбора команды (`cmd/menu`).
 
 ## Тестирование
 
@@ -64,14 +66,15 @@ CI настроен через GitHub Actions (`.github/workflows/tests.yml`): �
 main.go                          # точка входа: загрузка .env, инициализация БД, регистрация команд
 cmd/                             # определения CLI-команд (cobra)
   sync/sync.go, months/months.go, year/year.go, accounts/accounts.go,
-  capital/capital.go, migrate/migrate.go
+  capital/capital.go, dynamics/dynamics.go, migrate/migrate.go,
+  list/list.go, menu/menu.go
   sync.go, months.go, ...        # дублирующие/устаревшие версии в корне cmd/
 internal/
   app/                           # контейнер зависимостей (Container), инициализация БД (DB)
   config/                        # конфигурация из переменных окружения
   model/                         # доменные модели (Transaction, Account, Instrument, Tag, SyncState)
   services/zenmoney/             # HTTP-клиент ZenMoney API (DTO ответов, запрос Diff/DiffSince)
-  usecase/                       # бизнес-логика (Sync, Month, Year, Accounts, Capital)
+  usecase/                       # бизнес-логика (Sync, Month, Year, Accounts, Capital, Dynamics)
   adapter/
     db/                          # абстракция-обёртка над GORM (DBServiceInterface)
     sqliterepo/zenrepo/
@@ -101,9 +104,14 @@ internal/
 | Tag         | tags         | Id (PK), Title                                                                     |
 | SyncState   | sync_state   | ID, LastSyncedAt, ServerTimestamp, UpdatedAt                                       |
 
-Важно: поле `TagIds` в `model.Transaction` хранит ID тегов строкой через запятую, а связанные `Tag` и `Account` (
-`InAccount`/`OutAccount`) подгружаются отдельно через GORM Preload/Joins только в репозитории счетов. В репозитории
-транзакций связанные сущности **не** подгружаются.
+Важно: поле `TagIds` в `model.Transaction` хранит ID тегов строкой через запятую. Связанные `Account` (
+`InAccount`/`OutAccount`) и их `Currency` подгружаются в репозитории транзакций через GORM
+`Preload("InAccount.Currency")`
+/`Preload("OutAccount.Currency")` (кроме `GetPreviousMonth`/`GetCurrentMonth`, которые ходят через `GetBetweenDate`), а
+в
+репозитории счетов — через `Joins("Currency")`. Связанный `Tag` в транзакциях **не** подгружается — у него тег
+`gorm:"-"`,
+и `GetTagsTitle()` по этой причине всегда вернёт «Перевод».
 
 ### Двойные реализации команд
 
